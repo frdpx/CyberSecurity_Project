@@ -14,7 +14,7 @@
     display: flex;
     list-style: none;
     gap: 20px;
-    color: #43558f;
+    color: #43548e;
     font-size: 18px;
 }
 
@@ -24,7 +24,7 @@
     gap: 40px;
 }
 
-.navbar-button{
+.navbar button{
     background: transparent;
     font-size: 16px;
     color: #43558f;
@@ -32,5 +32,33 @@
     padding: 10px 30px;
     border-radius: 50px;
     cursor: pointer;
+    transition: 0.25s;
 }
+
+.navbar button:hover{
+    background-color: antiquewhite;
+
+}
+
+.navbar .active{
+    padding-bottom: 2px;
+    border-bottom: 2px solid #43548e;
+}
+ .navbar li{
+    cursor: pointer;
+ }
+
+ .navbar-search-icon{
+    position: relative;
+ }
+
+ .navbar-search-icon .dot{
+    position:absolute;
+    min-width: 10px;
+    min-height: 10px;
+    background-color: rgb(219, 58, 14);
+    border-radius: 5px;
+    top: -5px;
+    right: -8px;
+ }
 
