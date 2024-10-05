@@ -1,9 +1,9 @@
-import React from 'react'
+import React,{useContext,useEffect,useState} from 'react'
 import './Navbar.css'
 import { assets } from '../../assets/assets'
 
 
-const Navbar = () => {
+const Navbar = ({setShowLogin}) => {
   return (
     <div className='navbar'>
 
@@ -22,7 +22,7 @@ const Navbar = () => {
 
                 </div>
             </div>
-            <button className='navbar-button'>sign in</button>
+            <button onClick={()=>setShowLogin(true)}>sign in</button>
         </div>
 
     </div>
