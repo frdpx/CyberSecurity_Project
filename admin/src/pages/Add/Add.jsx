@@ -2,10 +2,10 @@ import React, { useState } from 'react'
 import './Add.css'
 import { assets } from '../../assets/assets';
 import axios from "axios"
+import { toast } from 'react-toastify';
 
-const Add = () => {
+const Add =  ({url}) => {
 
-    const url = "http://localhost:4000";
     const [image,setImage] = useState(false);
     const [data,setData] = useState({
         name:"",
@@ -29,7 +29,8 @@ const Add = () => {
         fromData.append("price",Number(data.price))
         fromData.append("category",data.category)
         fromData.append("image",image)
-        const response = await axios.post('${url}/api/food/add',fromData)
+        const response = await axios.post(`${url}/api/food/add`, fromData)
+
         if(response.data.success){
             setData({
                 name:"",
@@ -39,8 +40,9 @@ const Add = () => {
         
             })
             setImage(false)
+            toast.success(response.data.message)
         }else{
-
+            toast.error(response.data.message)
         }
     }
     
@@ -73,7 +75,7 @@ const Add = () => {
                         <option value="Cake">Cake</option>
                         <option value="Pure Veg">Pure Veg</option>
                         <option value="Pasta">Pasta</option>
-                        <option value="Noodles">Nooles</option>
+                        <option value="Noodles">Noodles</option>
                     </select>
                 </div>
                 <div className="add-price flex-col">
