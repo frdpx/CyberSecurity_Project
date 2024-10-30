@@ -1,13 +1,45 @@
 .food-item{
-width: auto;
-margin: auto;
-box-shadow: 0px 0px 10px #00000018;
-transition: 0.3s;
-animation: fadeIn 1s;
+    width: 100%;
+    margin: auto;
+    border-radius: 15px;
+    box-shadow: 0px 0px 10px #00000018;
+    transition: 0.3s;
+    animation: fadeIn 1s;
+}
+.food-item:hover{
+    transform: scale(1.02);
+}
+.food-item-img-container{
+    position: relative;
+}
+.food-item-img-container .add{
+    width: 35px;
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    cursor: pointer;
+    border-radius: 50%;
+}
+.food-item-img-container .add:hover{
+    border: 2px solid #FF4C24;
 }
 .food-item-image{
-    width: 100%;
-    border-radius: 15px 15px 0px 0px;
+   width: 100%;
+   border-radius: 15px 15px 0px 0px;
+}
+.food-item-counter{
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px;
+    border-radius: 50px;
+    background-color: white;
+}
+.food-item-counter img{
+    width: 30px;
 }
 .food-item-info{
     padding: 20px;
@@ -19,45 +51,19 @@ animation: fadeIn 1s;
     margin-bottom: 10px;
 }
 .food-item-name-rating p{
-    font-size: 21px;
+    font-size: 20px;
     font-weight: 500;
 }
-.food-item-name-rating .img{
-    width: 75px;
+.food-item-name-rating img{
+    width: 70px;
 }
 .food-item-desc{
-    color: #756868;
-    font-size: 15px;
+    color: #676767;
+    font-size: 12px;
 }
 .food-item-price{
-    color:#F95738;
-    font-size: 23px;
+    color: #FF4C24;
+    font-size: 22px;
     font-weight: 500;
     margin: 10px 0px;
-}
-.food-item-image-container{
-    position: relative;
-}
-.food-item-image-container .add{
-    width: 35px;
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    cursor: pointer;
-    border-radius: 50%;
-}
-.food-item-counter{
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px;
-    border-radius: 50px;
-    background-color: azure;
-}
-.food-item-counter img{
-    width: 30px;
-
 }
