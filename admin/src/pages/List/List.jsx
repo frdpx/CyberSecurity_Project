@@ -4,7 +4,7 @@ import { url, currency } from '../../assets/assets';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
-const List = ({url}) => {
+const List = () => {
   const [list, setList] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [currentFood, setCurrentFood] = useState(null);
@@ -13,34 +13,58 @@ const List = ({url}) => {
   const [price, setPrice] = useState('');
 
   const fetchList = async () => {
-    const response = await axios.get(`${url}/api/food/list`);
-    if (response.data.success) {
-      setList(response.data.data);
-    } else {
-      toast.error("Error");
+    try {
+      const response = await axios.get(`${url}/api/food/list`);
+      if (response.data.success) {
+        setList(response.data.data);
+      } else {
+        toast.error("Error fetching food list");
+      }
+    } catch (error) {
+      toast.error("Network error");
+      console.error("Fetch error:", error);
     }
   };
 
   const removeFood = async (foodId) => {
-    const response = await axios.post(`${url}/api/food/remove`, { id: foodId });
-    await fetchList();
-    if (response.data.success) {
-      toast.success(response.data.message);
-    } else {
-      toast.error("Error");
+    try {
+      const response = await axios.post(`${url}/api/food/remove`, { id: foodId });
+      if (response.data.success) {
+        await fetchList();
+        toast.success(response.data.message);
+      } else {
+        toast.error("Error removing food");
+      }
+    } catch (error) {
+      toast.error("Network error");
+      console.error("Remove error:", error);
     }
   };
 
   const updateFood = async (foodId, updatedData) => {
-    const response = await axios.put(`${url}/api/food/update`, {
-      id: foodId,
-      ...updatedData
-    });
-    await fetchList();
-    if (response.data.success) {
-      toast.success(response.data.message);
-    } else {
-      toast.error("Error updating food");
+    if (!updatedData.name || !updatedData.category || !updatedData.price) {
+      toast.error("All fields are required");
+      return false;
+    }
+    
+    try {
+      const response = await axios.put(`${url}/api/food/update`, {
+        id: foodId,
+        ...updatedData
+      });
+      
+      if (response.data.success) {
+        await fetchList();
+        toast.success(response.data.message);
+        return true; // indicate success
+      } else {
+        toast.error("Error updating food");
+        return false; // indicate failure
+      }
+    } catch (error) {
+      toast.error("Network error");
+      console.error("Update error:", error);
+      return false; // indicate failure
     }
   };
 
@@ -67,20 +91,18 @@ const List = ({url}) => {
           <b>Price</b>
           <b>Action</b>
         </div>
-        {list.map((item, index) => {
-          return (
-            <div key={index} className='list-table-format'>
-              <img src={`${url}/images/` + item.image} alt="" />
-              <p>{item.name}</p>
-              <p>{item.category}</p>
-              <p>{currency}{item.price}</p>
-              <div className='action-buttons'>
-                <p className='cursor' onClick={() => handleEditClick(item)}>Edit</p>
-                <p className='cursor' onClick={() => removeFood(item._id)}>x</p>
-              </div>
+        {list.map((item, index) => (
+          <div key={index} className='list-table-format'>
+            <img src={`${url}/images/` + item.image} alt={item.name} />
+            <p>{item.name}</p>
+            <p>{item.category}</p>
+            <p>{currency}{item.price}</p>
+            <div className='action-buttons'>
+              <p className='cursor' onClick={() => handleEditClick(item)}>Edit</p>
+              <p className='cursor' onClick={() => removeFood(item._id)}>x</p>
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
       {isEditing && (
         <div className="edit-form">
@@ -103,9 +125,11 @@ const List = ({url}) => {
             onChange={(e) => setPrice(e.target.value)}
             placeholder="Price"
           />
-          <button onClick={() => {
-            updateFood(currentFood._id, { name, category, price });
-            setIsEditing(false);
+          <button onClick={async () => {
+            const success = await updateFood(currentFood._id, { name, category, price });
+            if (success) {
+              setIsEditing(false);
+            }
           }}>Save</button>
           <button onClick={() => setIsEditing(false)}>Cancel</button>
         </div>

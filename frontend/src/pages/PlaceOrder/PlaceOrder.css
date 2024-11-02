@@ -1,35 +1,104 @@
-.place-order{
+.place-order {
     display: flex;
     align-items: start;
     justify-content: space-between;
     gap: 50px;
-    margin-top: 100px;
+    margin: 100px 0px;
 }
-.place-order-left{
+
+.place-order-left {
     width: 100%;
-    max-width: max(30%,500px);
+    max-width: max(30%, 500px);
 }
-.place-order-left .title{
+
+.place-order-left .title {
     font-size: 30px;
     font-weight: 600;
     margin-bottom: 50px;
 }
-.place-order-left input{
+
+.place-order-left input {
     margin-bottom: 15px;
     width: 100%;
     padding: 10px;
-    border: 1px solid #c5c5c5;
+    border: 1px solid #C5C5C5;
     border-radius: 4px;
-    outline: #F95738;
+    outline-color: #F95738;
 }
-.place-order-left .multi-fields{
+
+.place-order-left .multi-field {
     display: flex;
     gap: 10px;
 }
-.place-order-right{
+
+.place-order-right {
     width: 100%;
-    max-width: max(40%,500px);
+    max-width: max(40%, 500px);
 }
-.place-order .cart-total button{
+
+.place-order-submit {
+    margin-top: 50px;
+    border: none;
+    background-color: #F95738;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.cart-total {
+    margin-bottom: 20px;
+}
+
+.cart-total-details {
+    display: flex;
+    justify-content: space-between;
+}
+
+.payment {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.payment h2 {
     margin-top: 30px;
+    margin-bottom: 20px;
+    font-size: 24px;
+    color: #333;
+}
+
+.payment .payment-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 2px solid #F95738;
+    border-radius: 8px;
+    min-width: 300px;
+    padding: 10px;
+    transition: background-color 0.3s, transform 0.3s;
+    cursor: pointer;
+}
+
+.payment .payment-option img {
+    width: 20px;
+    height: auto;
+}
+
+.payment .payment-option:hover {
+    background-color: #ffe7de;
+    transform: scale(1.02);
+}
+
+.payment .payment-option.selected {
+    background-color: #F95738;
+    color: white;
+    border-color: #F95738;
+}
+
+@media (max-width: 700px) {
+    .place-order {
+        flex-direction: column;
+    }
 }
