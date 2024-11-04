@@ -8,8 +8,8 @@ const Footer = () => {
       <div className="footer-content">
         <div className="footer-content-left">
             <img src={assets.logo} alt="" />
-            <p>HiwHiw is a reliable food delivery in Thailand</p>
-            <p>HiwHiw is a reliable food delivery in Thailand</p>
+            <p>Enjoy the convenience of Hiwhiw Restaurant’s delivery service, </p>
+            <p>bringing our delicious food straight to your doorstep.</p>
             <div className="footer-social-icons">
                 <img src={assets.facebook_icon} alt="" />
                 <img src={assets.twitter_icon} alt="" />

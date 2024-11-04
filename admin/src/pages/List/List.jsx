@@ -42,31 +42,40 @@ const List = () => {
   };
 
   const updateFood = async (foodId, updatedData) => {
-    if (!updatedData.name || !updatedData.category || !updatedData.price) {
-      toast.error("All fields are required");
+  if (!updatedData.name || !updatedData.category || !updatedData.price) {
+    toast.error("All fields are required");
+    return false;
+  }
+
+  try {
+    console.log("Sending update request with data:", { id: foodId, ...updatedData });
+
+    const response = await axios.put(
+      `${url}/api/food/update`,
+      { id: foodId, ...updatedData },
+      {
+        headers: {
+          Authorization: `Bearer YOUR_TOKEN_HERE`, // เพิ่ม token ที่นี่ถ้า API ต้องการ
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (response.data.success) {
+      await fetchList();
+      toast.success(response.data.message);
+      return true;
+    } else {
+      toast.error("Error updating food");
       return false;
     }
-    
-    try {
-      const response = await axios.put(`${url}/api/food/update`, {
-        id: foodId,
-        ...updatedData
-      });
-      
-      if (response.data.success) {
-        await fetchList();
-        toast.success(response.data.message);
-        return true; // indicate success
-      } else {
-        toast.error("Error updating food");
-        return false; // indicate failure
-      }
-    } catch (error) {
-      toast.error("Network error");
-      console.error("Update error:", error);
-      return false; // indicate failure
-    }
-  };
+  } catch (error) {
+    toast.error("Network error");
+    console.error("Update error:", error); // แสดง error ใน console เพื่อตรวจสอบเพิ่มเติม
+    return false;
+  }
+};
+
 
   const handleEditClick = (item) => {
     setCurrentFood(item);

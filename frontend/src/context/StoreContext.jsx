@@ -109,7 +109,7 @@ const StoreContextProvider = (props) => {
         setToken,
         loadCartData,
         setCartItems,
-        currency,
+        currency : "฿",
         deliveryCharge
     };
 
