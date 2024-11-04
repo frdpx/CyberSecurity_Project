@@ -35,6 +35,30 @@ const addFood = async (req, res) => {
     }
 }
 
+// update food
+const updateFood = async (req, res) => {
+    const { id, name, description, price, category } = req.body;
+
+    try {
+        // ค้นหาและอัปเดตรายการอาหารตาม `id`
+        const updatedFood = await foodModel.findByIdAndUpdate(
+            id,
+            { name, description, price, category },
+            { new: true } // Return updated document
+        );
+
+        if (!updatedFood) {
+            return res.status(404).json({ success: false, message: "Food item not found" });
+        }
+
+        res.json({ success: true, message: "Food item updated successfully", data: updatedFood });
+    } catch (error) {
+        console.error("Error updating food:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
+
 // delete food
 const removeFood = async (req, res) => {
     try {
@@ -52,4 +76,4 @@ const removeFood = async (req, res) => {
 
 }
 
-export { listFood, addFood, removeFood }
+export { listFood, addFood, removeFood, updateFood }
