@@ -1,5 +1,6 @@
 import userModel from "../models/userModel.js";
 
+
 // add to user cart  
 const addToCart = async (req, res) => {
    try {
@@ -56,7 +57,7 @@ const removeFromCart = async (req, res) => {
 const getCart = async (req, res) => {
     const { token } = req.headers;
     // การดึงข้อมูลผู้ใช้ตาม token
-    const user = await User.findOne({ token });
+    const user = await userModel.findOne({ token });
     
     if (!user) {
         return res.status(404).json({ success: false, message: 'User not found' });
