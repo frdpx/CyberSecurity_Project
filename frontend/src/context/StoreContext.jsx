@@ -9,13 +9,13 @@ const StoreContextProvider = (props) => {
     const [food_list, setFoodList] = useState([]);
     const [cartItems, setCartItems] = useState({});
     const [token, setToken] = useState("");
-    const currency = "$";
-    const deliveryCharge = 5;
+    const currency = "฿";
+    const deliveryCharge = 20;
 
     const addToCart = async (itemId) => {
         if (!itemId) {
             console.error("Item ID is not defined");
-            return; // เพิ่มการตรวจสอบที่นี่
+            return; 
         }
 
         if (!cartItems[itemId]) {
@@ -24,10 +24,10 @@ const StoreContextProvider = (props) => {
             setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
         }
 
-        // ตรวจสอบว่า token ถูกต้องหรือไม่ก่อนทำการเรียก API
+
         if (token) {
             try {
-                await axios.post(url + "/api/cart/add", { itemId }, { headers: { token } });
+            await axios.post(url + "/api/cart/add", { itemId }, { headers: { token } });
             } catch (error) {
                 console.error("Error adding item to cart:", error);
             }
@@ -37,7 +37,6 @@ const StoreContextProvider = (props) => {
     const removeFromCart = async (itemId) => {
         if (cartItems[itemId] > 0) {
             setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] - 1 }));
-            // ตรวจสอบว่า token ถูกต้องหรือไม่ก่อนทำการเรียก API
             if (token) {
                 try {
                     await axios.post(url + "/api/cart/remove", { itemId }, { headers: { token } });
