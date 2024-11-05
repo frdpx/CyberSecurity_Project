@@ -155,56 +155,56 @@ export const food_list = [
         name: "Lasagna Rolls",
         image: food_5,
         price: 14,
-        description: "Food plays a crucial role in providing the essential nutrients necessary for maintaining health.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Rolls"
     }, {
         _id: "6",
         name: "Peri Peri Rolls",
         image: food_6,
         price: 12,
-        description: "Food plays a crucial role in providing the essential nutrients necessary for maintaining health.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Rolls"
     }, {
         _id: "7",
         name: "Chicken Rolls",
         image: food_7,
         price: 20,
-        description: "Food plays a crucial role in providing the essential nutrients necessary for maintaining health.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Rolls"
     }, {
         _id: "8",
         name: "Veg Rolls",
         image: food_8,
         price: 15,
-        description: "Food plays a crucial role in providing the essential nutrients necessary for maintaining health.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Rolls"
     }, {
         _id: "9",
         name: "Ripple Ice Cream",
         image: food_9,
         price: 14,
-        description: "Desserts typically contain carbohydrates, which are the body’s main source of energy.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Deserts"
     }, {
         _id: "10",
         name: "Fruit Ice Cream",
         image: food_10,
         price: 22,
-        description: "Desserts typically contain carbohydrates, which are the body’s main source of energy.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Deserts"
     }, {
         _id: "11",
         name: "Jar Ice Cream",
         image: food_11,
         price: 10,
-        description: "Desserts typically contain carbohydrates, which are the body’s main source of energy.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Deserts"
     }, {
         _id: "12",
         name: "Vanilla Ice Cream",
         image: food_12,
         price: 12,
-        description: "Desserts typically contain carbohydrates, which are the body’s main source of energy.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Deserts"
     },
     {
@@ -212,7 +212,7 @@ export const food_list = [
         name: "Chicken Sandwich",
         image: food_13,
         price: 12,
-        description: "Sandwiches can be a nutritious meal option, especially when made with wholesome ingredients.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Sandwich"
     },
     {
@@ -220,21 +220,21 @@ export const food_list = [
         name: "Vegan Sandwich",
         image: food_14,
         price: 18,
-        description: "Sandwiches can be a nutritious meal option, especially when made with wholesome ingredients.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Sandwich"
     }, {
         _id: "15",
         name: "Grilled Sandwich",
         image: food_15,
         price: 16,
-        description: "Sandwiches can be a nutritious meal option, especially when made with wholesome ingredients.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Sandwich"
     }, {
         _id: "16",
         name: "Bread Sandwich",
         image: food_16,
         price: 24,
-        description: "Sandwiches can be a nutritious meal option, especially when made with wholesome ingredients.",
+        description: "Food provides essential nutrients for overall health and well-being",
         category: "Sandwich"
     }, {
         _id: "17",

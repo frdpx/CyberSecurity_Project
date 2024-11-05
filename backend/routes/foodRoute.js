@@ -17,6 +17,6 @@ const upload = multer({ storage: storage });
 foodRouter.get("/list", listFood);
 foodRouter.post("/add", upload.single('image'), addFood);
 foodRouter.post("/remove", removeFood);
-foodRouter.put("/update", updateFood); // เพิ่มเส้นทางอัปเดต
+foodRouter.put("/update", updateFood); 
 
 export default foodRouter;
