@@ -1,14 +1,16 @@
-import React, { useContext, useEffect, useState } from 'react'
-import './PlaceOrder.css'
-import { StoreContext } from '../../context/StoreContext'
+import React, { useContext, useEffect, useState } from 'react' 
+import './PlaceOrder.css' 
+import { StoreContext } from '../../context/StoreContext' 
 import { assets } from '../../assets/assets';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom'; 
+import { toast } from 'react-toastify'; 
+import axios from 'axios'; 
 
 const PlaceOrder = () => {
 
-    const [payment, setPayment] = useState("cod")
+    const [payment, setPayment] = useState("cod") 
+    
+   
     const [data, setData] = useState({
         firstName: "",
         lastName: "",
@@ -21,9 +23,10 @@ const PlaceOrder = () => {
         phone: ""
     })
 
-    const { getTotalCartAmount, token, food_list, cartItems, url, setCartItems,currency,deliveryCharge } = useContext(StoreContext);
+    const { getTotalCartAmount, token, food_list, cartItems, url, setCartItems, currency, deliveryCharge } = useContext(StoreContext);
 
-    const navigate = useNavigate();
+    const navigate = useNavigate(); 
+
 
     const onChangeHandler = (event) => {
         const name = event.target.name
@@ -32,8 +35,9 @@ const PlaceOrder = () => {
     }
 
     const placeOrder = async (e) => {
-        e.preventDefault()
-        let orderItems = [];
+        e.preventDefault() 
+        let orderItems = []; 
+
         food_list.map(((item) => {
             if (cartItems[item._id] > 0) {
                 let itemInfo = item;
@@ -41,31 +45,33 @@ const PlaceOrder = () => {
                 orderItems.push(itemInfo)
             }
         }))
+
+     
         let orderData = {
             address: data,
             items: orderItems,
             amount: getTotalCartAmount() + deliveryCharge,
         }
+
+        
         if (payment === "cod") {
-            let response = await axios.post(url + "/api/order/placecod", orderData, { headers: { token } });
+            let response = await axios.post(url + "/api/order/placecod", orderData, { headers: { token } }); 
             if (response.data.success) {
-                navigate("/myorders")
-                toast.success(response.data.message)
-                setCartItems({});
-            }
-            else {
-                toast.error("Something Went Wrong")
+                navigate("/myorders") 
+                toast.success(response.data.message) 
+                setCartItems({}); 
+            } else {
+                toast.error("Something Went Wrong") 
             }
         }
-
     }
 
+    
     useEffect(() => {
         if (!token) {
             toast.error("to place an order sign in first")
             navigate('/cart')
-        }
-        else if (getTotalCartAmount() === 0) {
+        } else if (getTotalCartAmount() === 0) {
             navigate('/cart')
         }
     }, [token])
@@ -74,6 +80,7 @@ const PlaceOrder = () => {
         <form onSubmit={placeOrder} className='place-order'>
             <div className="place-order-left">
                 <p className='title'>Delivery Information</p>
+                
                 <div className="multi-field">
                     <input type="text" name='firstName' onChange={onChangeHandler} value={data.firstName} placeholder='First name' required />
                     <input type="text" name='lastName' onChange={onChangeHandler} value={data.lastName} placeholder='Last name' required />
@@ -90,10 +97,12 @@ const PlaceOrder = () => {
                 </div>
                 <input type="text" name='phone' onChange={onChangeHandler} value={data.phone} placeholder='Phone' required />
             </div>
+            
             <div className="place-order-right">
                 <div className="cart-total">
                     <h2>Cart Totals</h2>
                     <div>
+                        
                         <div className="cart-total-details"><p>Subtotal</p><p>{currency}{getTotalCartAmount()}</p></div>
                         <hr />
                         <div className="cart-total-details"><p>Delivery Fee</p><p>{currency}{getTotalCartAmount() === 0 ? 0 : deliveryCharge}</p></div>
@@ -104,7 +113,7 @@ const PlaceOrder = () => {
                 <div className="payment">
                     <h2>Payment Method</h2>
                     <div onClick={() => setPayment("cod")} className="payment-option">
-                        <img src={payment === "cod" ? assets.checked : assets.un_checked} alt="" />
+                        <img src={payment === "cod" ? assets.checked : assets.un_checked} alt="" /> 
                         <p>COD ( Cash on delivery )</p>
                     </div>
                 </div>
@@ -114,4 +123,4 @@ const PlaceOrder = () => {
     )
 }
 
-export default PlaceOrder
+export default PlaceOrder 

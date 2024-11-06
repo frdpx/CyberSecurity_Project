@@ -12,20 +12,21 @@ const Cart = () => {
     <div className='cart'>
       <div className="cart-items">
         <div className="cart-items-title">
+           {/* ส่วนหัวตารางสำหรับแสดงข้อมูลสินค้า */}
           <p>Items</p> <p>Title</p> <p>Price</p> <p>Quantity</p> <p>Total</p> <p>Remove</p>
         </div>
         <br />
         <hr />
         {food_list.map((item, index) => {
-          if (cartItems[item._id]>0) {
+          if (cartItems[item._id]>0) { // ตรวจสอบว่า item นี้มีในตะกร้าหรือไม่
             return (<div key={index}>
               <div className="cart-items-title cart-items-item">
                 <img src={url+"/images/"+item.image} alt="" />
                 <p>{item.name}</p>
                 <p>{currency}{item.price}</p>
                 <div>{cartItems[item._id]}</div>
-                <p>{currency}{item.price*cartItems[item._id]}</p>
-                <p className='cart-items-remove-icon' onClick={()=>removeFromCart(item._id)}>x</p>
+                <p>{currency}{item.price*cartItems[item._id]}</p> {/* ราคารวมสำหรับสินค้านี้ */}
+                <p className='cart-items-remove-icon' onClick={()=>removeFromCart(item._id)}>x</p>{/* ปุ่มลบสินค้าจากตะกร้า */}
               </div>
               <hr />
             </div>)
