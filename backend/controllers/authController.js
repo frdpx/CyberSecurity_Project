@@ -599,7 +599,7 @@ export const login = async (req, res) => {
     }
 
     // เช็คว่า account ถูก lock หรือไม่
-    const { profile } = await getUserProfile(data.user.id);
+    const { profile } = await getUserProfile(authData.user.id);
 
     if (
       profile &&
