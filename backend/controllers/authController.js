@@ -1,4 +1,4 @@
-import { supabase } from "../config/supabase.js";
+import { supabase, supabaseAdmin } from "../config/supabase.js";
 
 // ===== DATABASE HELPER FUNCTIONS =====
 
@@ -45,8 +45,6 @@ const updateUserProfile = async (userId, profileData) => {
 // Helper function สำหรับสร้าง user profile
 const createUserProfile = async (user, additionalData = {}) => {
   try {
-    console.log("Creating profile for user:", additionalData);
-
     // เอา display_name และ role ออกจาก additionalData เพื่อป้องกันการ override
     const { display_name, role } = additionalData;
 
@@ -54,18 +52,19 @@ const createUserProfile = async (user, additionalData = {}) => {
       user_id: user.id,
       display_name: display_name,
       role: role || "user", // default role
+      created_at: new Date().toISOString()
     };
-
-    const { data, error } = await supabase
+    // ใช้ supabaseAdmin เพื่อข้าม RLS policy
+    const { data, error } = await supabaseAdmin
       .from("profiles")
       .insert([profileData])
       .select()
       .single();
 
     if (error) {
+      console.error("Direct insert failed:", error);
       throw new Error(error.message);
     }
-
     return { profile: data, error: null };
   } catch (error) {
     return { profile: null, error: error.message };
@@ -568,47 +567,30 @@ export const login = async (req, res) => {
       });
     }
 
-    // พยายาม login ด้วย Supabase
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password
-    });
+    const { data: authData, error: authError } =
+      await supabase.auth.signInWithPassword({
+        email: email,
+        password: password
+      });
 
-    if (error) {
-      // อัพเดท failed attempts สำหรับ user (ถ้ามี user ID)
-      const { data: userData } = await supabase.auth.admin.getUserByEmail(
-        email
-      );
-      if (userData.user) {
-        await updateFailedAttempts(userData.user.id, true);
-      }
+    if (authError) {
+      console.error("Login failed:", authError.message);
+      // บันทึกความล้มเหลวในการ Audit Log
+      // await createAuditLog(null, "LOGIN_FAILED", "API", false, { email, reason: authError.message }, ip, userAgent);
 
-      // Log failed login attempt
-      await createLoginAttempt(
-        userData.user?.id || null,
-        email,
-        false,
-        error.message,
-        ip
-      );
-      await createAuditLog(
-        userData.user?.id || null,
-        "LOGIN_FAILED",
-        "API",
-        false,
-        { email, reason: error.message },
-        ip,
-        userAgent
-      );
-
+      // Supabase มักจะส่งข้อความผิดพลาดทั่วไป เช่น "Invalid login credentials" เพื่อป้องกันการคาดเดาอีเมล
       return res.status(401).json({
         success: false,
-        message: "Invalid credentials",
-        code: "INVALID_CREDENTIALS"
+        message: "Invalid login credentials",
+        code: "LOGIN_FAILED"
       });
     }
 
-    if (!data.user) {
+    if (authData.user) {
+      await updateFailedAttempts(authData.user.id, true);
+    }
+
+    if (!authData.user) {
       await createLoginAttempt(null, email, false, "No user data returned", ip);
       return res.status(401).json({
         success: false,

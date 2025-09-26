@@ -5,6 +5,7 @@ dotenv.config()
 
 const supabaseUrl =  process.env.SUPABASE_URL
 const supabaseAnonKey =  process.env.SUPABASE_ANON_KEY
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables')
@@ -12,6 +13,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 // สำหรับใช้งานทั่วไป (client-side operations)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// สำหรับใช้งาน admin (bypass RLS)
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+})
 
 // Helper function สำหรับ verify JWT token
 export const verifySupabaseToken = async (token) => {
