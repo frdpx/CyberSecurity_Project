@@ -84,9 +84,8 @@ export const testSupabaseConnection = async () => {
   } catch (error) {
     console.error('❌ Supabase connection test failed:', error.message)
     console.error('💡 Please check your environment variables:')
-    console.error('   - NEXT_PUBLIC_SUPABASE_URL')
-    console.error('   - NEXT_PUBLIC_SUPABASE_ANON_KEY')
-    console.error('   - SUPABASE_SERVICE_ROLE_KEY (optional)')
+    console.error('   - SUPABASE_URL')
+    console.error('   - SUPABASE_ANON_KEY')
     return false
   }
 }
