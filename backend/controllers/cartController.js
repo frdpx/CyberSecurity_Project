@@ -1,63 +1,87 @@
-import userModel from "../models/userModel.js" 
+import userModel from "../models/userModel.js";
 
 const addToCart = async (req, res) => {
-   try {
-      let userData = await userModel.findOne({_id:req.body.userId});
-      
-      let cartData = await userData.cartData;
+  try {
+    const userId = req.user?._id;
+    const { itemId } = req.body;
 
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
-      if (!cartData[req.body.itemId]) {
-         cartData[req.body.itemId] = 1;
-      }
-      else {
+    const userData = await userModel.findById(userId);
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
 
-         cartData[req.body.itemId] += 1;
-      }
+    const cartData = userData.cartData || {};
 
-      await userModel.findByIdAndUpdate(req.body.userId, {cartData});
+    cartData[itemId] = (cartData[itemId] || 0) + 1;
 
-      res.json({ success: true, message: "Added To Cart" });
-   } catch (error) {
-      console.log(error);
-      res.json({ success: false, message: "Error" });
-   }
-}
+    userData.cartData = cartData;
+    await userData.save();
+
+    res.json({ success: true, message: "Added To Cart", cartData });
+  } catch (error) {
+    console.error("addToCart error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
 
 const removeFromCart = async (req, res) => {
-   try {
-      let userData = await userModel.findById(req.body.userId);
-      
-      let cartData = await userData.cartData;
+  try {
+    const userId = req.user?._id;
+    const { itemId } = req.body;
 
-      
-      if (cartData[req.body.itemId] > 0) {
-         cartData[req.body.itemId] -= 1;
-      }
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
 
-      
-      await userModel.findByIdAndUpdate(req.body.userId, {cartData});
+    const userData = await userModel.findById(userId);
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
 
-      res.json({ success: true, message: "Removed From Cart" });
-   } catch (error) {
-      console.log(error);
-      res.json({ success: false, message: "Error" });
-   }
-}
+    const cartData = userData.cartData || {};
+
+    if (cartData[itemId] > 0) {
+      cartData[itemId] -= 1;
+    }
+
+    userData.cartData = cartData;
+    await userData.save();
+
+    res.json({ success: true, message: "Removed From Cart", cartData });
+  } catch (error) {
+    console.error("removeFromCart error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
 
 const getCart = async (req, res) => {
-   try {
-   
-      let userData = await userModel.findById(req.body.userId);
-    
-      let cartData = await userData.cartData;
+  try {
+    const userId = req.user?._id;
 
-      res.json({ success: true, cartData: cartData });
-   } catch (error) {
-      
-      console.log(error);
-      res.json({ success: false, message: "Error" });
-   }
-}
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const userData = await userModel.findById(userId);
+    if (!userData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    res.json({ success: true, cartData: userData.cartData || {} });
+  } catch (error) {
+    console.error("getCart error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
 
 export { addToCart, removeFromCart, getCart };

@@ -6,20 +6,31 @@ import {
   removeFood,
   updateFood,
 } from "../controllers/foodController.js";
+import { authMiddleware } from "../middleware/auth.js";
+import { requireRole } from "../middleware/role.js";
 
 const foodRouter = express.Router();
 
 const storage = multer.diskStorage({
   destination: "uploads",
   filename: (req, file, cb) => {
-    return cb(null, `${Date.now()}${file.originalname}`);
+    cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
 foodRouter.get("/list", listFood);
-foodRouter.post("/add", upload.single("image"), addFood);
-foodRouter.post("/remove", removeFood);
-foodRouter.put("/update", updateFood);
+
+foodRouter.post(
+  "/add",
+  authMiddleware,
+  requireRole("admin"),
+  upload.single("image"),
+  addFood
+);
+
+foodRouter.post("/remove", authMiddleware, requireRole("admin"), removeFood);
+
+foodRouter.put("/update", authMiddleware, requireRole("admin"), updateFood);
 
 export default foodRouter;
