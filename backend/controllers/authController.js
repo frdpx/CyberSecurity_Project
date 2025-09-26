@@ -607,14 +607,14 @@ export const login = async (req, res) => {
       new Date(profile.lock_until) > new Date()
     ) {
       await createLoginAttempt(
-        data.user.id,
+        authData.user.id,
         email,
         false,
         "Account locked",
         ip
       );
       await createAuditLog(
-        data.user.id,
+        authData.user.id,
         "LOGIN_ACCOUNT_LOCKED",
         "API",
         false,
@@ -633,12 +633,12 @@ export const login = async (req, res) => {
     }
 
     // Reset failed attempts เมื่อ login สำเร็จ
-    await updateFailedAttempts(data.user.id, false);
+    await updateFailedAttempts(authData.user.id, false);
 
     // Log successful login
-    await createLoginAttempt(data.user.id, email, true, "Login successful", ip);
+    await createLoginAttempt(authData.user.id, email, true, "Login successful", ip);
     await createAuditLog(
-      data.user.id,
+      authData.user.id,
       "LOGIN_SUCCESS",
       "API",
       true,
