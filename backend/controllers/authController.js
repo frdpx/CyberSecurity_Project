@@ -651,8 +651,8 @@ export const login = async (req, res) => {
       success: true,
       message: "Login successful",
       data: {
-        user: data.user,
-        session: data.session,
+        user: authData.user,
+        session: authData.session,
         profile: profile
       }
     });
