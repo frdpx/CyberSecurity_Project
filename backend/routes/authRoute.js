@@ -2,7 +2,6 @@ import express from 'express';
 import { 
   getProfile, 
   updateProfile, 
-  createProfile, 
   getSession, 
   signOut, 
   refreshToken,
@@ -26,7 +25,6 @@ authRoute.use(supabaseAuthMiddleware); // Apply auth middleware to all routes be
 
 authRoute.get('/profile', getProfile);
 authRoute.put('/profile', updateProfile);
-authRoute.post('/profile', createProfile);
 authRoute.get('/session', getSession);
 authRoute.post('/signout', signOut);
 

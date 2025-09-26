@@ -45,13 +45,15 @@ const updateUserProfile = async (userId, profileData) => {
 // Helper function สำหรับสร้าง user profile
 const createUserProfile = async (user, additionalData = {}) => {
   try {
+    console.log("Creating profile for user:", additionalData);
+
+    // เอา display_name และ role ออกจาก additionalData เพื่อป้องกันการ override
+    const { display_name, role } = additionalData;
+
     const profileData = {
       user_id: user.id,
-      display_name:
-        user.user_metadata?.full_name || user.email?.split("@")[0] || "",
-      role: "user", // default role
-      created_at: new Date().toISOString(),
-      ...additionalData
+      display_name: display_name,
+      role: role || "user", // default role
     };
 
     const { data, error } = await supabase
@@ -341,102 +343,6 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update profile",
-      error: err.message
-    });
-  }
-};
-
-// Create user profile (usually called after sign up or when profile doesn't exist)
-export const createProfile = async (req, res) => {
-  const ip = req.clientIp || req.ip || req.connection.remoteAddress;
-  const userAgent = req.userAgent || req.headers["user-agent"];
-
-  try {
-    const user = req.user;
-    const { display_name, role = "user", ...additionalData } = req.body || {};
-
-    // เช็คว่า profile มีอยู่แล้วหรือไม่
-    const { profile: existingProfile } = await getUserProfile(user.id);
-
-    if (existingProfile) {
-      await createAuditLog(
-        user.id,
-        "PROFILE_CREATE_DUPLICATE",
-        "API",
-        false,
-        { reason: "Profile already exists" },
-        ip,
-        userAgent
-      );
-
-      return res.status(409).json({
-        success: false,
-        message: "Profile already exists",
-        code: "PROFILE_EXISTS",
-        data: existingProfile
-      });
-    }
-
-    // สร้าง profile ใหม่
-    const { profile, error } = await createUserProfile(user, {
-      display_name:
-        display_name ||
-        user.user_metadata?.full_name ||
-        user.email?.split("@")[0] ||
-        "",
-      role: role,
-      ...additionalData
-    });
-
-    if (error) {
-      await createAuditLog(
-        user.id,
-        "PROFILE_CREATE_FAILED",
-        "API",
-        false,
-        { error },
-        ip,
-        userAgent
-      );
-
-      return res.status(400).json({
-        success: false,
-        message: "Failed to create profile",
-        error: error
-      });
-    }
-
-    await createAuditLog(
-      user.id,
-      "PROFILE_CREATED",
-      "API",
-      true,
-      { profile_id: profile?.user_id },
-      ip,
-      userAgent
-    );
-
-    res.status(201).json({
-      success: true,
-      message: "Profile created successfully",
-      data: profile
-    });
-  } catch (err) {
-    console.error("Create profile error:", err);
-
-    await createAuditLog(
-      req.user?.id,
-      "PROFILE_CREATE_ERROR",
-      "API",
-      false,
-      { error: err.message },
-      ip,
-      userAgent
-    );
-
-    res.status(500).json({
-      success: false,
-      message: "Failed to create profile",
       error: err.message
     });
   }
@@ -800,13 +706,13 @@ export const login = async (req, res) => {
 export const register = async (req, res) => {
   const ip = req.ip || req.connection.remoteAddress;
   const userAgent = req.headers["user-agent"];
-  const { email, password, full_name, role = "user" } = req.body;
+  const { email, password, full_name, display_name, role = "user" } = req.body;
 
   try {
-    if (!email || !password) {
+    if (!email || !password || !display_name) {
       return res.status(400).json({
         success: false,
-        message: "Email and password required"
+        message: "Email, password, and display name are required"
       });
     }
 
@@ -816,14 +722,15 @@ export const register = async (req, res) => {
       password: password,
       options: {
         data: {
-          full_name: full_name || ""
+          full_name: full_name || "",
+          display_name: display_name || ""
         }
       }
     });
 
     if (authError) {
-        console.error("Registration failed:", authError);
-        await createAuditLog(
+      console.error("Registration failed:", authError);
+      await createAuditLog(
         null,
         "REGISTER_FAILED",
         "API",
@@ -863,7 +770,8 @@ export const register = async (req, res) => {
       authData.user,
       {
         role: role,
-        display_name: full_name || authData.user.email?.split("@")[0] || ""
+        display_name:
+          display_name || full_name || authData.user.email?.split("@")[0] || ""
       }
     );
 
@@ -1034,7 +942,6 @@ export const getAuditLogs = async (req, res) => {
 export default {
   getProfile,
   updateProfile,
-  createProfile,
   getSession,
   signOut,
   refreshToken,
