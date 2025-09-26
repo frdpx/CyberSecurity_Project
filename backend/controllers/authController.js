@@ -822,7 +822,8 @@ export const register = async (req, res) => {
     });
 
     if (authError) {
-      await createAuditLog(
+        console.error("Registration failed:", authError);
+        await createAuditLog(
         null,
         "REGISTER_FAILED",
         "API",
