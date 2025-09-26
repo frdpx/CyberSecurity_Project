@@ -1,0 +1,28 @@
+# Ignore node_modules in all subprojects
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+admin/node_modules/
+
+# Ignore build outputs
+dist/
+build/
+
+# Ignore environment files
+.env
+.env.local
+.env.development
+.env.production
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Optional: editor configs
+.vscode/
+.idea/
