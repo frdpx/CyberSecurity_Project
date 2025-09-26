@@ -1,10 +1,11 @@
 import orderModel from "../models/orderModel.js";
-import userModel from "../models/userModel.js";
+import userModel from "../models/userModel.js"
 
-// Config variables
-const currency = "usd";
-const deliveryCharge = 5;
+//config variables
+const currency = "THB";
+const deliveryCharge = 20;
 const frontend_URL = 'http://localhost:5173';
+
 
 // Placing User Order for Frontend using COD
 const placeOrderCod = async (req, res) => {
@@ -78,4 +79,4 @@ const verifyOrder = async (req, res) => {
 
 }
 
-export { listOrders, userOrders, updateStatus, verifyOrder, placeOrderCod }
+export {listOrders, userOrders, updateStatus, verifyOrder, placeOrderCod }
