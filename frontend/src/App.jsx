@@ -13,6 +13,7 @@ import NavbarAdmin from "./components/NavbarAdmin/Navbar";
 import Add from "./pages/Add/Add";
 import List from "./pages/List/List";
 import Orders from "./pages/Orders/Orders";
+import Sidebar from "./components/Sidebar/Sidebar";
 
 const App = () => {
   const userRole = localStorage.getItem("user_role");
@@ -24,20 +25,15 @@ const App = () => {
       <ToastContainer />
       {showLogin ? <LoginPopup setShowLogin={setShowLogin} /> : <></>}
       <div className="app">
-        {userRole === "admin" ? (
-          <NavbarAdmin setShowLogin={setShowLogin} />
-        ) : (
-          <Navbar setShowLogin={setShowLogin} />
+        <Navbar setShowLogin={setShowLogin} />
+        {userRole === "admin" && (
+          <div className="app-content">
+            <hr />
+            <Sidebar />
+          </div>
         )}
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
         {userRole === "admin" ? (
           <Routes>
-            {/* <Route path="/" element={<Home />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/order" element={<PlaceOrder />} />
-            <Route path="/myorders" element={<MyOrders />} /> */}
             <Route path="/add" element={<Add />} />
             <Route path="/list" element={<List />} />
             <Route path="/orders" element={<Orders />} />
@@ -48,9 +44,6 @@ const App = () => {
             <Route path="/cart" element={<Cart />} />
             <Route path="/order" element={<PlaceOrder />} />
             <Route path="/myorders" element={<MyOrders />} />
-            {/* <Route path="/add" element={<Add />} />
-            <Route path="/list" element={<List />} />
-            <Route path="/orders" element={<Orders />} /> */}
           </Routes>
         )}
         {/* <Routes>
