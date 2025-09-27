@@ -9,7 +9,7 @@ const LoginPopup = ({ setShowLogin }) => {
   const [currState, setCurrState] = useState("Sign Up");
 
   const [data, setData] = useState({
-    name: "",
+    display_name: "",
     email: "",
     password: "",
   });
@@ -22,28 +22,47 @@ const LoginPopup = ({ setShowLogin }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    let apiUrl = "http://localhost:4000/api/user/";
+    let apiUrl = "http://localhost:4000/api/auth/";
     apiUrl += currState === "Login" ? "login" : "register";
 
     try {
+      const payload =
+        currState === "Login"
+          ? {
+              email: data.email,
+              password: data.password,
+            }
+          : {
+              display_name: data.display_name,
+              email: data.email,
+              password: data.password,
+            };
+
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          password: data.password,
-        }),
+        body: JSON.stringify(payload), // ✅ ส่งเฉพาะข้อมูลที่ต้องใช้
       });
 
       const resData = await response.json();
 
       if (resData.success) {
-        localStorage.setItem("token", resData.token);
-        setToken(resData.token);
+        const token =
+          resData.data?.session?.access_token ||
+          resData.data?.access_token ||
+          null;
+
+        if (!token) throw new Error("No access token returned");
+
+        localStorage.setItem("token", token);
+        setToken(token);
+
         toast.success(`${currState} successful!`);
 
-        if (resData.role === "admin") {
+        if (
+          resData.data?.profile?.role === "admin" ||
+          resData.role === "admin"
+        ) {
           window.location.href = "http://localhost:5174";
         } else {
           window.location.href = "/";
@@ -71,9 +90,9 @@ const LoginPopup = ({ setShowLogin }) => {
         <div className="login-popup-inputs">
           {currState === "Sign Up" && (
             <input
-              name="name"
+              name="display_name"
               onChange={onChangeHandler}
-              value={data.name}
+              value={data.display_name}
               type="text"
               placeholder="Your name"
               required

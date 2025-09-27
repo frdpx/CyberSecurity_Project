@@ -52,7 +52,7 @@ const createUserProfile = async (user, additionalData = {}) => {
       user_id: user.id,
       display_name: display_name,
       role: role || "user", // default role
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
     // ใช้ supabaseAdmin เพื่อข้าม RLS policy
     const { data, error } = await supabaseAdmin
@@ -92,7 +92,7 @@ const createAuditLog = async (
       ip: ip,
       user_agent: userAgent,
       details: details,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
 
     const { data, error } = await supabase
@@ -127,7 +127,7 @@ const createLoginAttempt = async (
       email_tried: emailTried,
       success: success,
       reason: reason,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     };
 
     const { data, error } = await supabase
@@ -178,7 +178,7 @@ const checkFailedLoginAttempts = async (
       attemptCount: data.length,
       maxAttempts: maxAttempts,
       timeWindow: timeWindowMinutes,
-      error: null
+      error: null,
     };
   } catch (error) {
     return {
@@ -186,7 +186,7 @@ const checkFailedLoginAttempts = async (
       attemptCount: 0,
       maxAttempts,
       timeWindow: timeWindowMinutes,
-      error: error.message
+      error: error.message,
     };
   }
 };
@@ -263,7 +263,7 @@ const checkRateLimit = async (
       attemptCount: data.length,
       maxAttempts: maxAttempts,
       timeWindow: timeWindowMinutes,
-      error: null
+      error: null,
     };
   } catch (error) {
     console.error("Rate limit check error:", error);
@@ -272,7 +272,7 @@ const checkRateLimit = async (
       attemptCount: 0,
       maxAttempts,
       timeWindow: timeWindowMinutes,
-      error: error.message
+      error: error.message,
     };
   }
 };
@@ -290,20 +290,20 @@ export const getProfile = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Profile not found",
-        error: error
+        error: error,
       });
     }
 
     res.status(200).json({
       success: true,
-      data: profile
+      data: profile,
     });
   } catch (err) {
     console.error("Get profile error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to get profile",
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -321,28 +321,28 @@ export const updateProfile = async (req, res) => {
 
     const { profile, error } = await updateUserProfile(userId, {
       ...updateData,
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
     });
 
     if (error) {
       return res.status(400).json({
         success: false,
         message: "Failed to update profile",
-        error: error
+        error: error,
       });
     }
 
     res.status(200).json({
       success: true,
       message: "Profile updated successfully",
-      data: profile
+      data: profile,
     });
   } catch (err) {
     console.error("Update profile error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to update profile",
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -354,14 +354,14 @@ export const getSession = async (req, res) => {
 
     const {
       data: { session },
-      error
+      error,
     } = await supabase.auth.getSession();
 
     if (error) {
       return res.status(401).json({
         success: false,
         message: "Failed to get session",
-        error: error.message
+        error: error.message,
       });
     }
 
@@ -370,15 +370,15 @@ export const getSession = async (req, res) => {
       data: {
         user: req.user,
         profile: req.profile,
-        session: session
-      }
+        session: session,
+      },
     });
   } catch (err) {
     console.error("Get session error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to get session",
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -398,14 +398,14 @@ export const signOut = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "Signed out successfully"
+      message: "Signed out successfully",
     });
   } catch (err) {
     console.error("Sign out error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to sign out",
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -418,19 +418,19 @@ export const refreshToken = async (req, res) => {
     if (!refresh_token) {
       return res.status(400).json({
         success: false,
-        message: "Refresh token required"
+        message: "Refresh token required",
       });
     }
 
     const { data, error } = await supabase.auth.refreshSession({
-      refresh_token: refresh_token
+      refresh_token: refresh_token,
     });
 
     if (error) {
       return res.status(401).json({
         success: false,
         message: "Failed to refresh token",
-        error: error.message
+        error: error.message,
       });
     }
 
@@ -440,15 +440,15 @@ export const refreshToken = async (req, res) => {
       data: {
         access_token: data.session.access_token,
         refresh_token: data.session.refresh_token,
-        expires_at: data.session.expires_at
-      }
+        expires_at: data.session.expires_at,
+      },
     });
   } catch (err) {
     console.error("Refresh token error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to refresh token",
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -475,7 +475,7 @@ export const getAllProfiles = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Failed to get profiles",
-        error: error.message
+        error: error.message,
       });
     }
 
@@ -486,15 +486,15 @@ export const getAllProfiles = async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total: count,
-        pages: Math.ceil(count / limit)
-      }
+        pages: Math.ceil(count / limit),
+      },
     });
   } catch (err) {
     console.error("Get all profiles error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to get profiles",
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -509,7 +509,7 @@ export const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and password required"
+        message: "Email and password required",
       });
     }
 
@@ -533,7 +533,7 @@ export const login = async (req, res) => {
         message:
           "Too many login attempts from this IP. Please try again later.",
         code: "RATE_LIMITED",
-        retry_after: 300 // 5 minutes
+        retry_after: 300, // 5 minutes
       });
     }
 
@@ -563,14 +563,14 @@ export const login = async (req, res) => {
         success: false,
         message: `Too many failed login attempts for this email. Try again after ${timeWindow} minutes.`,
         code: "EMAIL_BLOCKED",
-        retry_after: timeWindow * 60
+        retry_after: timeWindow * 60,
       });
     }
 
     const { data: authData, error: authError } =
       await supabase.auth.signInWithPassword({
         email: email,
-        password: password
+        password: password,
       });
 
     if (authError) {
@@ -582,7 +582,7 @@ export const login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "Invalid login credentials",
-        code: "LOGIN_FAILED"
+        code: "LOGIN_FAILED",
       });
     }
 
@@ -594,7 +594,7 @@ export const login = async (req, res) => {
       await createLoginAttempt(null, email, false, "No user data returned", ip);
       return res.status(401).json({
         success: false,
-        message: "Login failed"
+        message: "Login failed",
       });
     }
 
@@ -628,7 +628,7 @@ export const login = async (req, res) => {
         message:
           "Account is temporarily locked due to too many failed attempts",
         code: "ACCOUNT_LOCKED",
-        lock_until: profile.lock_until
+        lock_until: profile.lock_until,
       });
     }
 
@@ -636,7 +636,13 @@ export const login = async (req, res) => {
     await updateFailedAttempts(authData.user.id, false);
 
     // Log successful login
-    await createLoginAttempt(authData.user.id, email, true, "Login successful", ip);
+    await createLoginAttempt(
+      authData.user.id,
+      email,
+      true,
+      "Login successful",
+      ip
+    );
     await createAuditLog(
       authData.user.id,
       "LOGIN_SUCCESS",
@@ -646,15 +652,24 @@ export const login = async (req, res) => {
       ip,
       userAgent
     );
+    console.log("✅ Login success:", {
+      userId: authData.user.id,
+      email: email,
+      token: authData.session?.access_token?.slice(0, 20) + "...", // log แค่ต้นๆ กันยาว
+    });
 
     res.status(200).json({
       success: true,
       message: "Login successful",
       data: {
         user: authData.user,
+        profile: profile,
         session: authData.session,
-        profile: profile
-      }
+        access_token: authData.session?.access_token || null,
+        refresh_token: authData.session?.refresh_token || null,
+        expires_at: authData.session?.expires_at || null,
+      },
+     
     });
   } catch (err) {
     console.error("Login error:", err);
@@ -679,7 +694,7 @@ export const login = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Login failed",
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -694,7 +709,7 @@ export const register = async (req, res) => {
     if (!email || !password || !display_name) {
       return res.status(400).json({
         success: false,
-        message: "Email, password, and display name are required"
+        message: "Email, password, and display name are required",
       });
     }
 
@@ -705,9 +720,9 @@ export const register = async (req, res) => {
       options: {
         data: {
           full_name: full_name || "",
-          display_name: display_name || ""
-        }
-      }
+          display_name: display_name || "",
+        },
+      },
     });
 
     if (authError) {
@@ -725,7 +740,7 @@ export const register = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: authError.message,
-        code: "REGISTER_FAILED"
+        code: "REGISTER_FAILED",
       });
     }
 
@@ -743,7 +758,7 @@ export const register = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Failed to create user account",
-        code: "USER_CREATION_FAILED"
+        code: "USER_CREATION_FAILED",
       });
     }
 
@@ -753,7 +768,7 @@ export const register = async (req, res) => {
       {
         role: role,
         display_name:
-          display_name || full_name || authData.user.email?.split("@")[0] || ""
+          display_name || full_name || authData.user.email?.split("@")[0] || "",
       }
     );
 
@@ -780,7 +795,7 @@ export const register = async (req, res) => {
       {
         email,
         has_profile: !!profile,
-        profile_error: profileError
+        profile_error: profileError,
       },
       ip,
       userAgent
@@ -793,8 +808,8 @@ export const register = async (req, res) => {
         user: authData.user,
         session: authData.session,
         profile: profile,
-        profile_created: !!profile
-      }
+        profile_created: !!profile,
+      },
     });
   } catch (err) {
     console.error("Registration error:", err);
@@ -812,7 +827,7 @@ export const register = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Registration failed",
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -843,7 +858,7 @@ export const getLoginAttempts = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Failed to get login attempts",
-        error: error.message
+        error: error.message,
       });
     }
 
@@ -854,15 +869,15 @@ export const getLoginAttempts = async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total: count,
-        pages: Math.ceil(count / limit)
-      }
+        pages: Math.ceil(count / limit),
+      },
     });
   } catch (err) {
     console.error("Get login attempts error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to get login attempts",
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -897,7 +912,7 @@ export const getAuditLogs = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Failed to get audit logs",
-        error: error.message
+        error: error.message,
       });
     }
 
@@ -908,15 +923,15 @@ export const getAuditLogs = async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total: count,
-        pages: Math.ceil(count / limit)
-      }
+        pages: Math.ceil(count / limit),
+      },
     });
   } catch (err) {
     console.error("Get audit logs error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to get audit logs",
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -931,5 +946,5 @@ export default {
   login,
   register,
   getLoginAttempts,
-  getAuditLogs
+  getAuditLogs,
 };
