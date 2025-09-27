@@ -799,8 +799,6 @@ export const login = async (req, res) => {
     });
     // console.log("✅ Login success:", JSON.stringify(res.data, null, 2));
 
-f6d9b54acd808d0e003897e2f7b4d72b6a8d55
-
     return res.status(200).json({
       success: true,
       message: "Login successful",

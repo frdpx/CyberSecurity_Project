@@ -11,6 +11,11 @@ import menu_6 from "./menu_6.png";
 import menu_7 from "./menu_7.png";
 import menu_8 from "./menu_8.png";
 
+import add_icon from "./add_icon.png";
+import order_icon from "./order_icon.png";
+import profile_image from "./profile_image.png";
+import upload_area from "./upload_area.png";
+
 import food_1 from "./food_1.png";
 import food_2 from "./food_2.png";
 import food_3 from "./food_3.png";
@@ -62,6 +67,9 @@ import parcel_icon from "./parcel_icon.png";
 import checked from "./checked.png";
 import un_checked from "./un_checked.png";
 
+export const url = 'http://localhost:4000'
+export const currency = '฿'
+
 export const assets = {
   logo,
   basket_icon,
@@ -71,6 +79,10 @@ export const assets = {
   add_icon_green,
   add_icon_white,
   remove_icon_red,
+  add_icon,
+  order_icon,
+  profile_image,
+  upload_area,
   //   app_store,
   //   play_store,
   //   linkedin_icon,

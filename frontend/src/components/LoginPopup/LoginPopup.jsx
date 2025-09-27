@@ -57,13 +57,15 @@ const LoginPopup = ({ setShowLogin }) => {
         localStorage.setItem("token", token);
         setToken(token);
 
+        localStorage.setItem("user_role", resData.data?.profile?.role || resData.role);
+
         toast.success(`${currState} successful!`);
 
         if (
-          resData.data?.user?.role === "admin" ||
+          resData.data?.profile?.role === "admin" ||
           resData.role === "admin"
         ) {
-          window.location.href = "http://localhost:5174";
+          window.location.href = "http://localhost:5173/add";
         } else {
           window.location.href = "/";
         }
