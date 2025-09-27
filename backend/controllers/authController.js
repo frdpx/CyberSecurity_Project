@@ -669,6 +669,7 @@ export const login = async (req, res) => {
         refresh_token: authData.session?.refresh_token || null,
         expires_at: authData.session?.expires_at || null,
       },
+     
     });
   } catch (err) {
     console.error("Login error:", err);
