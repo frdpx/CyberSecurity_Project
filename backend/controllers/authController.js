@@ -130,6 +130,13 @@ const createLoginAttempt = async (
       created_at: new Date().toISOString(),
     };
 
+    console.log("⚡ createLoginAttempt called:", {
+      userId,
+      emailTried,
+      success,
+      reason,
+    });
+
     const { data, error } = await supabase
       .from("login_attempts")
       .insert([attemptData])
@@ -692,30 +699,32 @@ export const login = async (req, res) => {
 
   try {
     if (!email || !password) {
+      await createLoginAttempt(null, email, false, "NOT_FOUND", ip);
       return res.status(400).json({
         success: false,
         message: "Email and password required",
         message: "Email and password required",
       });
     }
-
-    // --- IP rate limit ---
-    const { isBlocked: ipBlocked, attemptCount: ipAttempts } =
-      await checkRateLimit(ip, "LOGIN_ATTEMPT", 5, 10);
+    
+    // Rate limit check
+    const { isBlocked: ipBlocked } = await checkRateLimit(
+      ip,
+      "LOGIN_ATTEMPT",
+      5,
+      10
+    );
 
     if (ipBlocked) {
-      await createAuditLog(
-        null,
-        "LOGIN_RATE_LIMITED",
-        "API",
-        false,
-        { email, ip, attempts: ipAttempts },
-        ip,
-        userAgent
-      );
-
+      await createLoginAttempt(null, email, false, "LOCKED", ip);
       return res.status(429).json({
         success: false,
+        message: "Too many login attempts. Try again later.",
+        code: "RATE_LIMITED",
+      });
+    }
+
+    const { isBlocked, attemptCount, timeWindow } =
         message: "Too many login attempts from this IP. Please try again later.",
         code: "RATE_LIMITED",
         retry_after: 300, // 5 minutes
@@ -723,18 +732,10 @@ export const login = async (req, res) => {
       });
     }
 
-    // --- email-based throttling ---
     const { isBlocked, attemptCount, maxAttempts, timeWindow } =
       await checkFailedLoginAttempts(email);
-
     if (isBlocked) {
-      await createLoginAttempt(
-        null,
-        email,
-        false,
-        `Account blocked due to ${attemptCount} failed attempts`,
-        ip
-      );
+      await createLoginAttempt(null, email, false, "LOCKED", ip);
       await createAuditLog(
         null,
         "LOGIN_BLOCKED",
@@ -747,8 +748,20 @@ export const login = async (req, res) => {
 
       return res.status(429).json({
         success: false,
-        message: `Too many failed login attempts for this email. Try again after ${timeWindow} minutes.`,
+        message: `Too many failed attempts. Try again after ${timeWindow} minutes.`,
         code: "EMAIL_BLOCKED",
+      });
+    }
+
+    // Supabase login
+    const { data: authData, error: authError } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+    if (authError) {
+      await createLoginAttempt(null, email, false, "WRONG_PASSWORD", ip);
         retry_after: timeWindow * 60,
         retry_after: timeWindow * 60,
       });
@@ -770,14 +783,24 @@ export const login = async (req, res) => {
       });
     }
 
-    if (!authData?.user) {
-      await createLoginAttempt(null, email, false, "No user data returned", ip);
+
+    if (!authData.user) {
+      await createLoginAttempt(null, email, false, "NOT_FOUND", ip);
+
       return res.status(401).json({
         success: false,
         message: "Login failed",
         message: "Login failed",
       });
     }
+
+    // Account locked?
+    const { profile } = await getUserProfile(authData.user.id);
+    if (profile?.lock_until && new Date(profile.lock_until) > new Date()) {
+      await createLoginAttempt(authData.user.id, email, false, "LOCKED", ip);
+      return res.status(403).json({
+        success: false,
+        message: "Account locked",
 
     // --- fetch profile (ห้ามสร้างใหม่) ---
     const { profile } = await getUserProfile(authData.user.id);
@@ -824,6 +847,12 @@ export const login = async (req, res) => {
       });
     }
 
+
+    // Success login
+    await updateFailedAttempts(authData.user.id, false);
+    await createLoginAttempt(authData.user.id, email, true, "MFA_REQUIRED", ip); // 👈 ใช้ MFA_REQUIRED เป็น placeholder สำหรับ success
+
+
     // --- success: reset failed attempts (true = reset) ---
     await updateFailedAttempts(authData.user.id, true);
 
@@ -849,15 +878,18 @@ export const login = async (req, res) => {
       success: true,
       message: "Login successful",
       data: {
-        user: { ...authData.user, ...profile },
-        session: {
-          access_token: authData.session?.access_token,
-          refresh_token: authData.session?.refresh_token,
-          expires_at: authData.session?.expires_at,
-        },
+
+        user: authData.user,
+        profile,
+        session: authData.session,
+        access_token: authData.session?.access_token || null,
+        refresh_token: authData.session?.refresh_token || null,
+        expires_at: authData.session?.expires_at || null,
       },
     });
   } catch (err) {
+
+    await createLoginAttempt(null, email, false, "NOT_FOUND", ip);
     console.error("Login error:", err);
 
     await createLoginAttempt(null, email, false, `Server error: ${err.message}`, ip);
@@ -879,7 +911,6 @@ export const login = async (req, res) => {
     });
   }
 };
-
 
 // Register new user
 export const register = async (req, res) => {
