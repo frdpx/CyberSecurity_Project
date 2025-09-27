@@ -842,7 +842,10 @@ export const login = async (req, res) => {
       userId: authData.user.id,
       email: email,
       token: authData.session?.access_token?.slice(0, 20) + "...", // log แค่ต้นๆ กันยาว
+      profile: profile,
     });
+    // console.log("✅ Login success:", JSON.stringify(res.data, null, 2));
+
 
     // --- response: spread auth user + profile ---
     return res.status(200).json({

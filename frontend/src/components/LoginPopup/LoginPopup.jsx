@@ -60,7 +60,7 @@ const LoginPopup = ({ setShowLogin }) => {
         toast.success(`${currState} successful!`);
 
         if (
-          resData.data?.profile?.role === "admin" ||
+          resData.data?.user?.role === "admin" ||
           resData.role === "admin"
         ) {
           window.location.href = "http://localhost:5174";
