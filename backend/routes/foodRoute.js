@@ -7,7 +7,8 @@ import {
   updateFood,
 } from "../controllers/foodController.js";
 import { authMiddleware } from "../middleware/auth.js";
-import { requireRole } from "../middleware/role.js";
+// import { requireRole } from "../middleware/role.js";
+import { supabaseAuthMiddleware, requireRole } from '../middleware/auth.js';
 
 const foodRouter = express.Router();
 
@@ -20,7 +21,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 foodRouter.get("/list", listFood);
-
+foodRouter.use(supabaseAuthMiddleware);
 foodRouter.post(
   "/add",
   authMiddleware,
