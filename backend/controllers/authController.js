@@ -354,35 +354,47 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// Get user session info
 export const getSession = async (req, res) => {
   try {
-    const token = req.token;
+    const token = req.token; // ดึงมาจาก middleware
 
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.getSession();
-
-    if (error) {
+    if (!token) {
       return res.status(401).json({
         success: false,
-        message: "Failed to get session",
-        error: error.message,
+        message: "No token provided",
       });
     }
 
-    res.status(200).json({
+    // decode JWT เพื่อตรวจ expiry
+    const decoded = jwt.decode(token);
+    if (!decoded) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token",
+      });
+    }
+
+    if (decoded.exp * 1000 < Date.now()) {
+      return res.status(401).json({
+        success: false,
+        message: "Session expired",
+      });
+    }
+
+    return res.status(200).json({
       success: true,
       data: {
         user: req.user,
         profile: req.profile,
-        session: session,
+        session: {
+          access_token: token,
+          expires_at: decoded.exp,
+        },
       },
     });
   } catch (err) {
     console.error("Get session error:", err);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to get session",
       error: err.message,
@@ -701,7 +713,7 @@ export const login = async (req, res) => {
 
   try {
     if (!email || !password) {
-      await createLoginAttempt(null, email, false, "NOT_FOUND", ip);
+      await createLoginAttempt(null, email, false, "MFA_REQUIRED", ip);
       return res.status(400).json({
         success: false,
         message: "Email and password required",
@@ -712,26 +724,24 @@ export const login = async (req, res) => {
     const { data: authData, error: authError } =
       await supabase.auth.signInWithPassword({ email, password });
 
-    if (authError) {
-      //แยก log: NOT_FOUND vs WRONG_PASSWORD
-      if (authError.message.includes("Invalid login credentials")) {
-        // เช็คว่ามี email นี้ใน profiles/auth.users ไหม
-        const { data: userCheck } = await supabaseAdmin
-          .from("profiles")
-          .select("user_id")
-          .eq("email", email)
-          .maybeSingle();
+    if (authError && authError.message.includes("Invalid login credentials")) {
+      // ใช้ Supabase Admin API หา user ตาม email
+      const { data: users, error: userError } =
+        await supabaseAdmin.auth.admin.listUsers();
 
-        if (!userCheck) {
-          await createLoginAttempt(null, email, false, "NOT_FOUND", ip);
-        } else {
-          await createLoginAttempt(null, email, false, "WRONG_PASSWORD", ip);
-        }
+      if (userError) {
+        console.error("User check error:", userError.message);
+        await createLoginAttempt(null, email, false, "NOT_FOUND", ip);
       } else {
-        await createLoginAttempt(null, email, false, "WRONG_PASSWORD", ip);
+        const userExists = users?.users?.some((u) => u.email === email);
+
+        if (userExists) {
+          await createLoginAttempt(null, email, false, "WRONG_PASSWORD", ip);
+        } else {
+          await createLoginAttempt(null, email, false, "NOT_FOUND", ip);
+        }
       }
 
-      //ตอบ user เหมือนเดิมเสมอ
       return res.status(401).json({
         success: false,
         message: "Invalid login credentials",
@@ -774,13 +784,7 @@ export const login = async (req, res) => {
 
     // --- success ---
     await updateFailedAttempts(authData.user.id, false);
-    await createLoginAttempt(
-      authData.user.id,
-      email,
-      true,
-      "Login successful",
-      ip
-    );
+    await createLoginAttempt(authData.user.id, email, true, "SUCCESS", ip);
     await createAuditLog(
       authData.user.id,
       "LOGIN_SUCCESS",
@@ -923,6 +927,7 @@ export const register = async (req, res) => {
       ip,
       userAgent
     );
+    await createLoginAttempt(authData.user.id, email, true, "SUCCESS", ip);
 
     res.status(201).json({
       success: true,
