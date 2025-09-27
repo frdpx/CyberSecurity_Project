@@ -499,6 +499,191 @@ export const getAllProfiles = async (req, res) => {
   }
 };
 
+// // Login with email/password (server-side login)
+// export const login = async (req, res) => {
+//   const ip = req.ip || req.connection.remoteAddress;
+//   const userAgent = req.headers["user-agent"];
+//   const { email, password } = req.body;
+
+//   try {
+//     if (!email || !password) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Email and password required"
+//       });
+//     }
+
+//     // เช็ค rate limiting ตาม IP
+//     const { isBlocked: ipBlocked, attemptCount: ipAttempts } =
+//       await checkRateLimit(ip, "LOGIN_ATTEMPT", 5, 10);
+
+//     if (ipBlocked) {
+//       await createAuditLog(
+//         null,
+//         "LOGIN_RATE_LIMITED",
+//         "API",
+//         false,
+//         { email, ip, attempts: ipAttempts },
+//         ip,
+//         userAgent
+//       );
+
+//       return res.status(429).json({
+//         success: false,
+//         message:
+//           "Too many login attempts from this IP. Please try again later.",
+//         code: "RATE_LIMITED",
+//         retry_after: 300 // 5 minutes
+//       });
+//     }
+
+//     // เช็คการพยายาม login ที่ล้มเหลวสำหรับ email นี้
+//     const { isBlocked, attemptCount, maxAttempts, timeWindow } =
+//       await checkFailedLoginAttempts(email);
+
+//     if (isBlocked) {
+//       await createLoginAttempt(
+//         null,
+//         email,
+//         false,
+//         `Account blocked due to ${attemptCount} failed attempts`,
+//         ip
+//       );
+//       await createAuditLog(
+//         null,
+//         "LOGIN_BLOCKED",
+//         "API",
+//         false,
+//         { email, attempt_count: attemptCount },
+//         ip,
+//         userAgent
+//       );
+
+//       return res.status(429).json({
+//         success: false,
+//         message: `Too many failed login attempts for this email. Try again after ${timeWindow} minutes.`,
+//         code: "EMAIL_BLOCKED",
+//         retry_after: timeWindow * 60
+//       });
+//     }
+
+//     const { data: authData, error: authError } =
+//       await supabase.auth.signInWithPassword({
+//         email: email,
+//         password: password
+//       });
+
+//     if (authError) {
+//       console.error("Login failed:", authError.message);
+//       // บันทึกความล้มเหลวในการ Audit Log
+//       // await createAuditLog(null, "LOGIN_FAILED", "API", false, { email, reason: authError.message }, ip, userAgent);
+
+//       // Supabase มักจะส่งข้อความผิดพลาดทั่วไป เช่น "Invalid login credentials" เพื่อป้องกันการคาดเดาอีเมล
+//       return res.status(401).json({
+//         success: false,
+//         message: "Invalid login credentials",
+//         code: "LOGIN_FAILED"
+//       });
+//     }
+
+//     if (authData.user) {
+//       await updateFailedAttempts(authData.user.id, true);
+//     }
+
+//     if (!authData.user) {
+//       await createLoginAttempt(null, email, false, "No user data returned", ip);
+//       return res.status(401).json({
+//         success: false,
+//         message: "Login failed"
+//       });
+//     }
+
+//     // เช็คว่า account ถูก lock หรือไม่
+//     const { profile } = await getUserProfile(authData.user.id);
+
+//     if (
+//       profile &&
+//       profile.lock_until &&
+//       new Date(profile.lock_until) > new Date()
+//     ) {
+//       await createLoginAttempt(
+//         authData.user.id,
+//         email,
+//         false,
+//         "Account locked",
+//         ip
+//       );
+//       await createAuditLog(
+//         authData.user.id,
+//         "LOGIN_ACCOUNT_LOCKED",
+//         "API",
+//         false,
+//         { email, lock_until: profile.lock_until },
+//         ip,
+//         userAgent
+//       );
+
+//       return res.status(403).json({
+//         success: false,
+//         message:
+//           "Account is temporarily locked due to too many failed attempts",
+//         code: "ACCOUNT_LOCKED",
+//         lock_until: profile.lock_until
+//       });
+//     }
+
+//     // Reset failed attempts เมื่อ login สำเร็จ
+//     await updateFailedAttempts(authData.user.id, false);
+
+//     // Log successful login
+//     await createLoginAttempt(authData.user.id, email, true, "Login successful", ip);
+//     await createAuditLog(
+//       authData.user.id,
+//       "LOGIN_SUCCESS",
+//       "API",
+//       true,
+//       { email, has_profile: !!profile },
+//       ip,
+//       userAgent
+//     );
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Login successful",
+//       data: {
+//         user: authData.user,
+//         session: authData.session,
+//         profile: profile
+//       }
+//     });
+//   } catch (err) {
+//     console.error("Login error:", err);
+
+//     await createLoginAttempt(
+//       null,
+//       email,
+//       false,
+//       `Server error: ${err.message}`,
+//       ip
+//     );
+//     await createAuditLog(
+//       null,
+//       "LOGIN_ERROR",
+//       "API",
+//       false,
+//       { email, error: err.message },
+//       ip,
+//       userAgent
+//     );
+
+//     res.status(500).json({
+//       success: false,
+//       message: "Login failed",
+//       error: err.message
+//     });
+//   }
+// };
+
 // Login with email/password (server-side login)
 export const login = async (req, res) => {
   const ip = req.ip || req.connection.remoteAddress;
@@ -509,11 +694,11 @@ export const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: "Email and password required"
+        message: "Email and password required",
       });
     }
 
-    // เช็ค rate limiting ตาม IP
+    // --- IP rate limit ---
     const { isBlocked: ipBlocked, attemptCount: ipAttempts } =
       await checkRateLimit(ip, "LOGIN_ATTEMPT", 5, 10);
 
@@ -530,14 +715,13 @@ export const login = async (req, res) => {
 
       return res.status(429).json({
         success: false,
-        message:
-          "Too many login attempts from this IP. Please try again later.",
+        message: "Too many login attempts from this IP. Please try again later.",
         code: "RATE_LIMITED",
-        retry_after: 300 // 5 minutes
+        retry_after: 300, // 5 minutes
       });
     }
 
-    // เช็คการพยายาม login ที่ล้มเหลวสำหรับ email นี้
+    // --- email-based throttling ---
     const { isBlocked, attemptCount, maxAttempts, timeWindow } =
       await checkFailedLoginAttempts(email);
 
@@ -554,7 +738,7 @@ export const login = async (req, res) => {
         "LOGIN_BLOCKED",
         "API",
         false,
-        { email, attempt_count: attemptCount },
+        { email, attempt_count: attemptCount, maxAttempts, timeWindow },
         ip,
         userAgent
       );
@@ -563,56 +747,59 @@ export const login = async (req, res) => {
         success: false,
         message: `Too many failed login attempts for this email. Try again after ${timeWindow} minutes.`,
         code: "EMAIL_BLOCKED",
-        retry_after: timeWindow * 60
+        retry_after: timeWindow * 60,
       });
     }
 
+    // --- authenticate with Supabase Auth ---
     const { data: authData, error: authError } =
-      await supabase.auth.signInWithPassword({
-        email: email,
-        password: password
-      });
+      await supabase.auth.signInWithPassword({ email, password });
 
     if (authError) {
       console.error("Login failed:", authError.message);
-      // บันทึกความล้มเหลวในการ Audit Log
-      // await createAuditLog(null, "LOGIN_FAILED", "API", false, { email, reason: authError.message }, ip, userAgent);
 
-      // Supabase มักจะส่งข้อความผิดพลาดทั่วไป เช่น "Invalid login credentials" เพื่อป้องกันการคาดเดาอีเมล
+      // ไม่บอกเหตุผลละเอียดเพื่อความปลอดภัย
       return res.status(401).json({
         success: false,
         message: "Invalid login credentials",
-        code: "LOGIN_FAILED"
+        code: "LOGIN_FAILED",
       });
     }
 
-    if (authData.user) {
-      await updateFailedAttempts(authData.user.id, true);
-    }
-
-    if (!authData.user) {
+    if (!authData?.user) {
       await createLoginAttempt(null, email, false, "No user data returned", ip);
       return res.status(401).json({
         success: false,
-        message: "Login failed"
+        message: "Login failed",
       });
     }
 
-    // เช็คว่า account ถูก lock หรือไม่
+    // --- fetch profile (ห้ามสร้างใหม่) ---
     const { profile } = await getUserProfile(authData.user.id);
 
-    if (
-      profile &&
-      profile.lock_until &&
-      new Date(profile.lock_until) > new Date()
-    ) {
-      await createLoginAttempt(
+    // ถ้าไม่มีโปรไฟล์ -> error ทันที (ไม่สร้างใหม่)
+    if (!profile) {
+      await createLoginAttempt(authData.user.id, email, false, "Profile not found", ip);
+      await createAuditLog(
         authData.user.id,
-        email,
+        "LOGIN_PROFILE_MISSING",
+        "API",
         false,
-        "Account locked",
-        ip
+        { email },
+        ip,
+        userAgent
       );
+
+      return res.status(403).json({
+        success: false,
+        message: "Profile not found. Please contact admin.",
+        code: "PROFILE_NOT_FOUND",
+      });
+    }
+
+    // --- check account lock ---
+    if (profile.lock_until && new Date(profile.lock_until) > new Date()) {
+      await createLoginAttempt(authData.user.id, email, false, "Account locked", ip);
       await createAuditLog(
         authData.user.id,
         "LOGIN_ACCOUNT_LOCKED",
@@ -625,47 +812,44 @@ export const login = async (req, res) => {
 
       return res.status(403).json({
         success: false,
-        message:
-          "Account is temporarily locked due to too many failed attempts",
+        message: "Account is temporarily locked due to too many failed attempts",
         code: "ACCOUNT_LOCKED",
-        lock_until: profile.lock_until
+        lock_until: profile.lock_until,
       });
     }
 
-    // Reset failed attempts เมื่อ login สำเร็จ
-    await updateFailedAttempts(authData.user.id, false);
+    // --- success: reset failed attempts (true = reset) ---
+    await updateFailedAttempts(authData.user.id, true);
 
-    // Log successful login
+    // --- logs ---
     await createLoginAttempt(authData.user.id, email, true, "Login successful", ip);
     await createAuditLog(
       authData.user.id,
       "LOGIN_SUCCESS",
       "API",
       true,
-      { email, has_profile: !!profile },
+      { email },
       ip,
       userAgent
     );
 
-    res.status(200).json({
+    // --- response: spread auth user + profile ---
+    return res.status(200).json({
       success: true,
       message: "Login successful",
       data: {
-        user: authData.user,
-        session: authData.session,
-        profile: profile
-      }
+        user: { ...authData.user, ...profile },
+        session: {
+          access_token: authData.session?.access_token,
+          refresh_token: authData.session?.refresh_token,
+          expires_at: authData.session?.expires_at,
+        },
+      },
     });
   } catch (err) {
     console.error("Login error:", err);
 
-    await createLoginAttempt(
-      null,
-      email,
-      false,
-      `Server error: ${err.message}`,
-      ip
-    );
+    await createLoginAttempt(null, email, false, `Server error: ${err.message}`, ip);
     await createAuditLog(
       null,
       "LOGIN_ERROR",
@@ -676,13 +860,14 @@ export const login = async (req, res) => {
       userAgent
     );
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Login failed",
-      error: err.message
+      error: err.message,
     });
   }
 };
+
 
 // Register new user
 export const register = async (req, res) => {
