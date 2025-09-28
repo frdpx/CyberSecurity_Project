@@ -24,7 +24,6 @@ foodRouter.get("/list", listFood);
 foodRouter.use(supabaseAuthMiddleware);
 foodRouter.post(
   "/add",
-  authMiddleware,
   requireRole("admin"),
   upload.single("image"),
   addFood

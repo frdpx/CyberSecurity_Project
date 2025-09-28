@@ -2,7 +2,8 @@ import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
 import { 
   verifySupabaseToken, 
-  supabase
+  supabase ,
+  supabaseAdmin
 } from "../config/supabase.js";
 
 // Helper functions สำหรับ middleware
@@ -29,6 +30,7 @@ const createAuditLog = async (userId, action, resource, success, details = {}, i
 
 const getUserProfile = async (userId) => {
   try {
+    // console.log("Fetching profile for userId:", userId);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -38,7 +40,7 @@ const getUserProfile = async (userId) => {
     if (error && error.code !== 'PGRST116') {
       throw new Error(error.message)
     }
-    
+    // console.log("Fetched profile data:", data);
     return { profile: data || null, error: null }
   } catch (error) {
     return { profile: null, error: error.message }
@@ -135,8 +137,12 @@ export const supabaseAuthMiddleware = async (req, res, next) => {
       });
     }
 
+    // console.log("User authenticated:", user.id);
+
     // ดึง user profile จาก Supabase (ถ้ามี)
     const { profile, error: profileError } = await getUserProfile(user.id);
+
+    // console.log('profile callback:', profile);
     
     // เช็คว่า profile ถูก lock หรือไม่
     if (profile && profile.lock_until && new Date(profile.lock_until) > new Date()) {
@@ -152,6 +158,8 @@ export const supabaseAuthMiddleware = async (req, res, next) => {
     
     // Log successful authentication
     await createAuditLog(user.id, 'AUTH_SUCCESS', 'API', true, { profile_exists: !!profile }, ip, userAgent);
+
+    // console.log('profile:', profile); 
     
     // เพิ่ม user และ profile ข้อมูลใน request
     req.user = user;
@@ -195,8 +203,11 @@ export const requireRole = (roles = []) => {
           code: "AUTH_REQUIRED"
         });
       }
-
-      const userRole = req.profile?.role || req.user.user_metadata?.role || 'user';
+      // console.log("User profile:", req.profile);
+      // console.log("User metadata:", req.user?.user_metadata);
+      
+      const userRole = req.profile?.role || 'user';
+      // console.log("User role from profile:", userRole);
       
       if (roles.length > 0 && !roles.includes(userRole)) {
         return res.status(403).json({
