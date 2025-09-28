@@ -4,14 +4,14 @@ import {
   getCart,
   removeFromCart,
 } from "../controllers/cartController.js";
-import { authMiddleware } from "../middleware/auth.js";
+import { authMiddleware, supabaseAuthMiddleware } from "../middleware/auth.js";
 
 const cartRouter = express.Router();
 
-cartRouter.post("/get", authMiddleware, getCart);
+cartRouter.post("/get", supabaseAuthMiddleware, getCart);
 
-cartRouter.post("/add", authMiddleware, addToCart);
+cartRouter.post("/add", supabaseAuthMiddleware, addToCart);
 
-cartRouter.post("/remove", authMiddleware, removeFromCart);
+cartRouter.post("/remove", supabaseAuthMiddleware, removeFromCart);
 
 export default cartRouter;

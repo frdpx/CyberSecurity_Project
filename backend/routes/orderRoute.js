@@ -4,20 +4,20 @@ import {
   listOrders,
   updateStatus,
   userOrders,
-  placeOrderCod
+  placeOrderCod,
 } from "../controllers/orderController.js";
 import {
   supabaseAuthMiddleware,
   authMiddleware,
-  requireRole
+  requireRole,
 } from "../middleware/auth.js";
 
 const orderRouter = express.Router();
 
 orderRouter.use(supabaseAuthMiddleware);
-orderRouter.post("/userorders", authMiddleware, userOrders);
+orderRouter.post("/userorders", supabaseAuthMiddleware, userOrders);
 orderRouter.post("/status", requireRole("admin"), updateStatus);
 orderRouter.get("/list", requireRole("admin"), listOrders);
-orderRouter.post("/placecod", requireRole("admin"), placeOrderCod);
+orderRouter.post("/placecod", supabaseAuthMiddleware, placeOrderCod);
 
 export default orderRouter;
