@@ -7,6 +7,7 @@ import userModel from "../models/userModel.js";
 
 const placeOrderCod = async (req, res) => {
   try {
+    console.log("Placing order for user:", req.user._id);
     const userId = req.user._id;
     // console.log("Incoming order:", req.body);
 

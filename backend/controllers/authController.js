@@ -528,7 +528,7 @@ export const login = async (req, res) => {
 
   try {
     if (!email || !password) {
-      await createLoginAttempt(null, email, false, "MFA_REQUIRED", ip);
+      await createLoginAttempt(null, email, false, LoginAttemptReason.MFA_REQUIRED, ip);
       return res.status(400).json({
         success: false,
         message: "Email and password required",
@@ -546,14 +546,14 @@ export const login = async (req, res) => {
 
       if (userError) {
         console.error("User check error:", userError.message);
-        await createLoginAttempt(null, email, false, "NOT_FOUND", ip);
+        await createLoginAttempt(null, email, false, LoginAttemptReason.NOT_FOUND, ip);
       } else {
         const userExists = users?.users?.some((u) => u.email === email);
 
         if (userExists) {
-          await createLoginAttempt(null, email, false, "WRONG_PASSWORD", ip);
+          await createLoginAttempt(null, email, false, LoginAttemptReason.WRONG_PASSWORD, ip);
         } else {
-          await createLoginAttempt(null, email, false, "NOT_FOUND", ip);
+          await createLoginAttempt(null, email, false, LoginAttemptReason.NOT_FOUND, ip);
         }
       }
 
@@ -565,7 +565,7 @@ export const login = async (req, res) => {
     }
 
     if (!authData.user) {
-      await createLoginAttempt(null, email, false, "NOT_FOUND", ip);
+      await createLoginAttempt(null, email, false, LoginAttemptReason.NOT_FOUND, ip);
       return res.status(401).json({
         success: false,
         message: "Invalid login credentials",
@@ -577,7 +577,7 @@ export const login = async (req, res) => {
     const { profile } = await getUserProfile(authData.user.id);
 
     if (!profile) {
-      await createLoginAttempt(authData.user.id, email, false, "NOT_FOUND", ip);
+      await createLoginAttempt(authData.user.id, email, false, LoginAttemptReason.NOT_FOUND, ip);
       return res.status(403).json({
         success: false,
         message: "Profile not found. Please contact admin.",
@@ -587,7 +587,7 @@ export const login = async (req, res) => {
 
     // --- check account lock ---
     if (profile.lock_until && new Date(profile.lock_until) > new Date()) {
-      await createLoginAttempt(authData.user.id, email, false, "LOCKED", ip);
+      await createLoginAttempt(authData.user.id, email, false, LoginAttemptReason.LOCKED, ip);
       return res.status(403).json({
         success: false,
         message:
@@ -599,10 +599,10 @@ export const login = async (req, res) => {
 
     // --- success ---
     await updateFailedAttempts(authData.user.id, false);
-    await createLoginAttempt(authData.user.id, email, true, "SUCCESS", ip);
+    await createLoginAttempt(authData.user.id, email, true, LoginAttemptReason.SUCCESS, ip);
     await createAuditLog(
       authData.user.id,
-      "LOGIN_SUCCESS",
+      AuditActions.LOGIN_SUCCESS,
       "API",
       true,
       { email },
@@ -632,7 +632,7 @@ export const login = async (req, res) => {
     });
   } catch (err) {
     console.error("Login error:", err);
-    await createLoginAttempt(null, email, false, "NOT_FOUND", ip);
+    await createLoginAttempt(null, email, false, LoginAttemptReason.NOT_FOUND, ip);
     return res.status(500).json({
       success: false,
       message: "Login failed",
@@ -671,7 +671,7 @@ export const register = async (req, res) => {
       console.error("Registration failed:", authError);
       await createAuditLog(
         null,
-        "REGISTER_FAILED",
+        AuditActions.REGISTER_FAILED,
         "API",
         false,
         { email, reason: authError.message },
@@ -689,7 +689,7 @@ export const register = async (req, res) => {
     if (!authData.user) {
       await createAuditLog(
         null,
-        "REGISTER_FAILED",
+        AuditActions.REGISTER_FAILED,
         "API",
         false,
         { email, reason: "No user created" },
@@ -719,7 +719,7 @@ export const register = async (req, res) => {
       // Log warning but don't fail the registration
       await createAuditLog(
         authData.user.id,
-        "PROFILE_CREATION_FAILED",
+        AuditActions.PROFILE_CREATION_FAILED,
         "API",
         false,
         { email, error: profileError },
@@ -731,7 +731,7 @@ export const register = async (req, res) => {
     // Log successful registration
     await createAuditLog(
       authData.user.id,
-      "REGISTER_SUCCESS",
+      AuditActions.REGISTER_SUCCESS,
       "API",
       true,
       {
@@ -742,7 +742,7 @@ export const register = async (req, res) => {
       ip,
       userAgent
     );
-    await createLoginAttempt(authData.user.id, email, true, "SUCCESS", ip);
+    await createLoginAttempt(authData.user.id, email, true, LoginAttemptReason.SUCCESS, ip);
 
     res.status(201).json({
       success: true,
@@ -759,7 +759,7 @@ export const register = async (req, res) => {
 
     await createAuditLog(
       null,
-      "REGISTER_ERROR",
+      AuditActions.REGISTER_ERROR,
       "API",
       false,
       { email, error: err.message },
