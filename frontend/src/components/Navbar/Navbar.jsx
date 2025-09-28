@@ -13,6 +13,8 @@ const Navbar = ({ setShowLogin }) => {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user_role");
+    localStorage.removeItem("expires_at");
+    localStorage.removeItem("refresh_token");
     setToken("");
     // navigate("/");
     window.location.href = "/";
