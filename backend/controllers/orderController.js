@@ -17,17 +17,17 @@ const placeOrderCod = async (req, res) => {
       req.body.items.length === 0
     ) {
       console.error("No items provided in order");
-      // return res
-      //   .status(400)
-      //   .json({ success: false, message: "No items provided" });
-      throw new Error("No items provided");
+      return res
+        .status(400)
+        .json({ success: false, message: "No items provided" });
+      // throw new Error("No items provided");
     }
     if (!req.body.address) {
       console.error("No address provided in order");
-      // return res
-      //   .status(400)
-      //   .json({ success: false, message: "No address provided" });
-      throw new Error("No address provided");
+      return res
+        .status(400)
+        .json({ success: false, message: "No address provided" });
+      // throw new Error("No address provided");
     }
 
     const newOrder = new orderModel({
