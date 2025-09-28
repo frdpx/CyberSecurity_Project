@@ -4,7 +4,7 @@ import {
   listFood,
   addFood,
   removeFood,
-  updateFood
+  updateFood,
 } from "../controllers/foodController.js";
 import { authMiddleware } from "../middleware/auth.js";
 // import { requireRole } from "../middleware/role.js";
@@ -16,11 +16,13 @@ const storage = multer.diskStorage({
   destination: "uploads",
   filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
-  }
+  },
 });
 const upload = multer({ storage });
-foodRouter.use(supabaseAuthMiddleware);
+
 foodRouter.get("/list", listFood);
+
+foodRouter.use(supabaseAuthMiddleware);
 
 foodRouter.post("/add", requireRole("admin"), upload.single("image"), addFood);
 
