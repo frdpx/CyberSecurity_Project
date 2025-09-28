@@ -13,11 +13,13 @@ import Add from "./pages/Add/Add";
 import List from "./pages/List/List";
 import Orders from "./pages/Orders/Orders";
 import Sidebar from "./components/Sidebar/Sidebar";
+import useSession from "./hooks/useSession";
 
 const App = () => {
   const userRole = localStorage.getItem("user_role");
   console.log("User Role:", userRole); // Debugging line to check the user role
   const [showLogin, setShowLogin] = useState(false);
+  useSession(setShowLogin);
 
   return (
     <>

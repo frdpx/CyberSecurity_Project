@@ -3,6 +3,7 @@ import "./LoginPopup.css";
 import { assets } from "../../assets/assets";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
+import { debugExpire } from "../../hooks/debugSession";
 
 const LoginPopup = ({ setShowLogin }) => {
   const { setToken, loadCartData } = useContext(StoreContext);
@@ -51,13 +52,33 @@ const LoginPopup = ({ setShowLogin }) => {
           resData.data?.session?.access_token ||
           resData.data?.access_token ||
           null;
+        const refreshToken =
+          resData.data?.session?.refresh_token ||
+          resData.data?.refresh_token ||
+          null;
+        const expiresAt =
+          resData.data?.session?.expires_at || resData.data?.expires_at || null;
 
         if (!token) throw new Error("No access token returned");
 
         localStorage.setItem("token", token);
         setToken(token);
 
-        localStorage.setItem("user_role", resData.data?.profile?.role || resData.role);
+        localStorage.setItem("refresh_token", refreshToken);
+        localStorage.setItem("expires_at", expiresAt * 1000);
+
+        //test session
+        // refresh อัตโนมัติ
+        // debugExpire(5)
+
+        // expire cuz เป็น string ปลอม
+        // localStorage.setItem("refresh_token", "bb");
+        // debugExpire(5);
+
+        localStorage.setItem(
+          "user_role",
+          resData.data?.profile?.role || resData.role
+        );
 
         toast.success(`${currState} successful!`);
 
