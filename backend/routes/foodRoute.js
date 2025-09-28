@@ -24,8 +24,8 @@ foodRouter.get("/list", listFood);
 
 foodRouter.post("/add", requireRole("admin"), upload.single("image"), addFood);
 
-foodRouter.post("/remove", authMiddleware, requireRole("admin"), removeFood);
+foodRouter.post("/remove", requireRole("admin"), removeFood);
 
-foodRouter.put("/update", authMiddleware, requireRole("admin"), updateFood);
+foodRouter.put("/update", requireRole("admin"), updateFood);
 
 export default foodRouter;
