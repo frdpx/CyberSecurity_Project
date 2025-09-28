@@ -10,11 +10,10 @@ import { supabaseAuthMiddleware, authMiddleware } from '../middleware/auth.js';
 
 const orderRouter = express.Router();
 
-orderRouter.get("/list", listOrders);
+orderRouter.use(supabaseAuthMiddleware);
 orderRouter.post("/userorders", authMiddleware, userOrders);
 orderRouter.post("/status", updateStatus);
-
-orderRouter.use(supabaseAuthMiddleware);
+orderRouter.get("/list", listOrders);
 orderRouter.post("/placecod", placeOrderCod);
 
 export default orderRouter;

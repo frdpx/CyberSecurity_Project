@@ -1,15 +1,20 @@
-import React, { useEffect, useState } from 'react'
+import  { useContext,useEffect, useState } from 'react'
 import './Orders.css'
 import { toast } from 'react-toastify';
 import axios from 'axios';
 import { assets, url, currency } from '../../assets/assets';
+import { StoreContext } from '../../context/StoreContext';
 
 const Order = () => {
-
+  const { token } = useContext(StoreContext);
   const [orders, setOrders] = useState([]);
 
   const fetchAllOrders = async () => {
-    const response = await axios.get(`${url}/api/order/list`)
+    const response = await axios.get(`${url}/api/order/list`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
     if (response.data.success) {
       setOrders(response.data.data.reverse());
     }
@@ -23,6 +28,10 @@ const Order = () => {
     const response = await axios.post(`${url}/api/order/status`, {
       orderId,
       status: event.target.value
+    },{
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     })
     if (response.data.success) {
       await fetchAllOrders();
