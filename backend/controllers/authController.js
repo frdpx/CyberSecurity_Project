@@ -1,4 +1,5 @@
 import { supabase, supabaseAdmin } from "../config/supabase.js";
+import {LoginAttemptReason, AuditActions} from '../constant/audit_action.js';
 
 // ===== DATABASE HELPER FUNCTIONS =====
 
