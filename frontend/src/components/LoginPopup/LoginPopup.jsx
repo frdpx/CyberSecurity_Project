@@ -137,6 +137,12 @@ const LoginPopup = ({ setShowLogin }) => {
             placeholder="Password"
             required
           />
+
+          {currState === "Login" && (
+            <p className="forgot-password">
+              <a href="/forgot-password">ลืมรหัสผ่าน?</a>
+            </p>
+          )}
         </div>
         <button type="submit">
           {currState === "Login" ? "Login" : "Create account"}
