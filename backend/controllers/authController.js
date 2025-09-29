@@ -401,31 +401,109 @@ export const getSession = async (req, res) => {
 };
 
 // Sign out user (invalidate token)
-export const signOut = async (req, res) => {
-  try {
-    const token = req.token;
+// export const signOut = async (req, res) => {
+//   try {
+//     const token = req.token;
 
-    // Sign out from Supabase
+//     // Sign out from Supabase
+//     const { error } = await supabase.auth.signOut(token);
+
+//     if (error) {
+//       console.error("Supabase signout error:", error);
+//       // อาจจะไม่ return error เพราะ client ควร handle token removal อยู่แล้ว
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       message: "Signed out successfully",
+//     });
+//   } catch (err) {
+//     console.error("Sign out error:", err);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to sign out",
+//       error: err.message,
+//     });
+//   }
+// };
+export const signOut = async (req, res) => {
+  const ip = req.ip || req.connection?.remoteAddress;
+  const userAgent = req.headers["user-agent"];
+  const token = req.token; // สมมติว่ามี middleware ใส่มาให้
+
+  // พยายามหา userId จาก req.user หรือจาก token (เผื่อ middleware ไม่ได้ผูก user เข้ามา)
+  const resolveUserId = async () => {
+    if (req.user?.id) return req.user.id;
+    if (!token) return null;
+    try {
+      const { data, error } = await supabase.auth.getUser(token);
+      if (error) return null;
+      return data?.user?.id || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const userId = await resolveUserId();
+
+  try {
+    // sign out ออกจาก Supabase
     const { error } = await supabase.auth.signOut(token);
 
+    // บันทึก Audit ไม่ว่าผลจะเป็นอย่างไร (success ตาม error)
+    await createAuditLog(
+      userId,
+      AuditActions.LOGOUT,        // หรือใช้ LOGOUT_SUCCESS/FAILED แยกก็ได้
+      "API",
+      !error,                     // success = true ถ้าไม่มี error
+      {
+        // metadata เพิ่มเติม
+        hasToken: Boolean(token),
+        message: error ? error.message : "Signed out successfully",
+      },
+      ip,
+      userAgent
+    );
+
     if (error) {
+      // ถ้าอยากให้ client เคลียร์ token ฝั่งหน้าเว็บต่อได้อยู่ดี ก็ส่ง 200 กลับพร้อม message ก็ได้
       console.error("Supabase signout error:", error);
-      // อาจจะไม่ return error เพราะ client ควร handle token removal อยู่แล้ว
+      return res.status(200).json({
+        success: true,
+        message: "Signed out (client should clear tokens).",
+        note: "Supabase signOut returned an error but client-side tokens should be cleared.",
+      });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Signed out successfully",
     });
   } catch (err) {
     console.error("Sign out error:", err);
-    res.status(500).json({
+
+    // บันทึก Audit กรณี exception จริง ๆ
+    await createAuditLog(
+      userId,
+      AuditActions.LOGOUT,        // หรือ LOGOUT_FAILED
+      "API",
+      false,
+      {
+        hasToken: Boolean(token),
+        error: err.message,
+      },
+      ip,
+      userAgent
+    );
+
+    return res.status(500).json({
       success: false,
       message: "Failed to sign out",
       error: err.message,
     });
   }
 };
+
 
 // Refresh token
 export const refreshToken = async (req, res) => {
