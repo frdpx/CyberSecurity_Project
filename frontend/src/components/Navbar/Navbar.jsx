@@ -3,6 +3,7 @@ import "./Navbar.css";
 import { assets } from "../../assets/assets";
 import { Link, useNavigate } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContext";
+import axios from "axios";
 
 const Navbar = ({ setShowLogin }) => {
   const [menu, setMenu] = useState("home");
@@ -10,14 +11,32 @@ const Navbar = ({ setShowLogin }) => {
   const navigate = useNavigate();
   const userRole = localStorage.getItem("user_role");
 
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("expires_at");
-    localStorage.removeItem("refresh_token");
-    setToken("");
-    // navigate("/");
-    window.location.href = "/";
+  const logout = async () => {
+    try {
+      const apiUrl = "http://localhost:4000/api/auth/signout";
+
+      // เรียก API logout (ส่ง token หรือ refresh_token ไปด้วย)
+      await axios.post(
+        apiUrl,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Logout error:", error.message);
+      // ถึง backend error ก็ให้ client เคลียร์ token อยู่ดี
+    } finally {
+      // เคลียร์ข้อมูลฝั่ง client
+      localStorage.removeItem("token");
+      localStorage.removeItem("user_role");
+      localStorage.removeItem("expires_at");
+      localStorage.removeItem("refresh_token");
+      setToken("");
+      window.location.href = "/";
+    }
   };
 
   return (
@@ -27,8 +46,7 @@ const Navbar = ({ setShowLogin }) => {
       </Link>
       {userRole === "admin" ? (
         <div>
-          {/* <img className="logo" src={assets.logo} alt="admin-parnel" /> */}
-          <h2>Admin Parnel</h2>
+          <h2>Admin Panel</h2>
         </div>
       ) : (
         <div>
@@ -53,8 +71,7 @@ const Navbar = ({ setShowLogin }) => {
               }}
               className={`${menu === "menu" ? "active" : ""}`}
             >
-              {" "}
-              menu{" "}
+              menu
             </Link>
             <a
               href="#footer"
@@ -87,19 +104,12 @@ const Navbar = ({ setShowLogin }) => {
               {userRole !== "admin" && (
                 <>
                   <li onClick={() => navigate("/myorders")}>
-                    {" "}
                     <img src={assets.bag_icon} alt="" /> <p>Orders</p>
                   </li>
                   <hr />
                 </>
               )}
-              {/* <li onClick={() => navigate("/myorders")}>
-                {" "}
-                <img src={assets.bag_icon} alt="" /> <p>Orders</p>
-              </li>
-              <hr /> */}
               <li onClick={logout}>
-                {" "}
                 <img src={assets.logout_icon} alt="" /> <p>Logout</p>
               </li>
             </ul>
