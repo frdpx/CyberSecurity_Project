@@ -95,6 +95,8 @@ const createAuditLog = async (
       details: details,
       created_at: new Date().toISOString(),
     };
+    
+    console.log("⚡ createAuditLog called:", logData);
 
     const { data, error } = await supabase
       .from("audit_logs")
@@ -128,17 +130,12 @@ const createLoginAttempt = async (
       email_tried: emailTried,
       success: success,
       reason: reason,
-      created_at: new Date().toISOString(),
+      // created_at: new Date().toISOString(),
     };
 
-    console.log("⚡ createLoginAttempt called:", {
-      userId,
-      emailTried,
-      success,
-      reason,
-    });
+    console.log("⚡ createLoginAttempt called:", attemptData);
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("login_attempts")
       .insert([attemptData])
       .select()
@@ -528,6 +525,8 @@ export const login = async (req, res) => {
 
   try {
     if (!email || !password) {
+      console.warn("Login failed: Missing credentials");
+      await createAuditLog(null, AuditActions.LOGIN_FAILED, "API", false, { email, reason: "Missing credentials" }, ip, userAgent);
       await createLoginAttempt(null, email, false, LoginAttemptReason.MFA_REQUIRED, ip);
       return res.status(400).json({
         success: false,
@@ -546,13 +545,18 @@ export const login = async (req, res) => {
 
       if (userError) {
         console.error("User check error:", userError.message);
+        await createAuditLog(null, AuditActions.LOGIN_FAILED, "API", false, { email, reason: userError.message }, ip, userAgent);
         await createLoginAttempt(null, email, false, LoginAttemptReason.NOT_FOUND, ip);
       } else {
         const userExists = users?.users?.some((u) => u.email === email);
 
         if (userExists) {
+          console.warn("Login failed: Wrong password for", email);
+          await createAuditLog(null, AuditActions.LOGIN_FAILED, "API", false, { email, reason: "Wrong password" }, ip, userAgent);
           await createLoginAttempt(null, email, false, LoginAttemptReason.WRONG_PASSWORD, ip);
         } else {
+          console.warn("Login failed: User not found for", email);
+          await createAuditLog(null, AuditActions.LOGIN_FAILED, "API", false, { email, reason: "User not found" }, ip, userAgent);
           await createLoginAttempt(null, email, false, LoginAttemptReason.NOT_FOUND, ip);
         }
       }
