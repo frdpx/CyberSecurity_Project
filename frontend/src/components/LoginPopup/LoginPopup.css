@@ -63,3 +63,18 @@
     font-weight: 500;
     cursor: pointer;
 }
+
+.forgot-password {
+  text-align: right;
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.forgot-password a {
+  color: #6b56ff;
+  text-decoration: none;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
