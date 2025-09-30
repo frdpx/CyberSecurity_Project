@@ -8,7 +8,12 @@ import cartRouter from "./routes/cartRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 import authRouter from "./routes/authRoute.js";
 import { connectDB } from "./config/db.js";
+
+import forcePasswordRouter from "./routes/forcePasswordRoute.js";
+
+
 import passwordRouter from "./routes/forgotPasswordRoute.js";
+
 // app config
 const app = express();
 const port = process.env.PORT || 4000;
@@ -48,6 +53,8 @@ await initializeServer();
 
 // api endpoints
 // app.use("/api/user", userRouter);
+
+app.use("/api/force", forcePasswordRouter);
 
 app.use("/api/auth", authRouter);
 
