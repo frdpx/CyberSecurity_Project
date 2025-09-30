@@ -17,12 +17,29 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
 
+      const res = await fetch("http://localhost:4000/api/password/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_email: email }), // backend รอ field user_email
+      });
 
-      toast.success("The password reset link has been sent to your email.");
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send reset link");
+      }
+
+      // ✅ ถ้า backend ส่ง dev_action_link กลับมา (ตอน dev)
+      if (data.dev_action_link) {
+        toast.info("Dev link generated (check console)");
+        console.log("Dev Reset Link:", data.dev_action_link);
+      }
+
+      toast.success(data.message || "The password reset link has been sent to your email.");
       setEmail("");
     } catch (err) {
       console.error(err);
-      toast.error("cannot send password reset link");
+      toast.error(err.message || "Cannot send password reset link");
     } finally {
       setLoading(false);
     }
