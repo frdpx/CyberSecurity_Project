@@ -1,16 +1,40 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { assets } from "../assets/assets";
 import "./ResetPassword.css";
 
+// เปลี่ยนให้ตรงกับ backend ของคุณ
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
+
+function getTokenFromUrl() {
+  // 1) ลองอ่านจาก hash (#access_token=...&type=recovery)
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const hashToken = hash.get("access_token");
+
+  // 2) ถ้าไม่มีใน hash ลองอ่านจาก query (?access_token=... หรือ ?token=...&type=recovery)
+  const qs = new URLSearchParams(window.location.search);
+  const qsAccess = qs.get("access_token");
+  const qsToken = qs.get("token");
+  const qsType = qs.get("type");
+
+  // ลำดับความสำคัญ: hash > query access_token > token(type=recovery)
+  if (hashToken) return hashToken;
+  if (qsAccess) return qsAccess;
+  if (qsToken && (qsType === "recovery" || !qsType)) return qsToken;
+  return null;
+}
+
 export default function ResetPassword() {
-  const [formData, setFormData] = useState({
-    password: "",
-    confirmPassword: "",
-  });
+  const [formData, setFormData] = useState({ password: "", confirmPassword: "" });
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // ดึง access_token จาก URL
+  const accessToken = useMemo(getTokenFromUrl, []);
+  useEffect(() => {
+    if (!accessToken) {
+      toast.error("Invalid or missing token. Open the link from your email again.");
+    }
+  }, [accessToken]);
 
   const handleChange = (e) => {
     setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
@@ -18,37 +42,53 @@ export default function ResetPassword() {
 
   const validatePassword = (password) => {
     if (password.length < 6) return "Password must be at least 6 characters";
-    if (!/(?=.*[a-z])/.test(password)) return "password must contain a lowercase letter";
-    if (!/(?=.*[A-Z])/.test(password)) return "password must contain an uppercase letter";
-    if (!/(?=.*\d)/.test(password)) return "password must contain a number";
+    if (!/(?=.*[a-z])/.test(password)) return "Password must contain a lowercase letter";
+    if (!(/(?=.*[A-Z])/.test(password))) return "Password must contain an uppercase letter";
+    if (!(/(?=.*\d)/.test(password))) return "Password must contain a number";
     return null;
   };
 
   const onSubmit = async () => {
+    if (!accessToken) {
+      toast.error("Missing token. Please use the reset link from your email.");
+      return;
+    }
+
     if (!formData.password || !formData.confirmPassword) {
       return toast.error("Please fill in all fields");
     }
     const passwordError = validatePassword(formData.password);
     if (passwordError) return toast.error(passwordError);
     if (formData.password !== formData.confirmPassword) {
-      return toast.error("new password and confirm password do not match");
+      return toast.error("New password and confirm password do not match");
     }
 
     try {
       setLoading(true);
-      // จำลองเรียก API
-      await new Promise((r) => setTimeout(r, 2000));
-      const mockSuccess = Math.random() > 0.2;
-      if (mockSuccess) {
-        toast.success("Password changed successfully");
-        setFormData({ password: "", confirmPassword: "" });
-        // window.location.href = "/login";
-      } else {
-        toast.error("failed to change password");
+
+      const resp = await fetch(`${API_BASE}/api/password/reset-password-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          new_password: formData.password,
+          access_token: accessToken,
+        }),
+      });
+
+      const data = await resp.json();
+
+      if (!resp.ok) {
+        toast.error(data?.error || "Failed to change password");
+        return;
       }
+
+      toast.success("Password changed successfully");
+      setFormData({ password: "", confirmPassword: "" });
+      // ไปหน้า login ถ้าต้องการ
+      // window.location.href = "/login";
     } catch (err) {
       console.error(err);
-      toast.error("cannot change password");
+      toast.error("Cannot change password");
     } finally {
       setLoading(false);
     }
@@ -64,7 +104,7 @@ export default function ResetPassword() {
           <label className="label">New Password</label>
           <div className="password-container">
             <input
-              type={showPassword ? "text" : "password"}
+              type="password"
               name="password"
               placeholder="******"
               value={formData.password}
@@ -72,7 +112,6 @@ export default function ResetPassword() {
               className="input"
               required
             />
-
           </div>
         </div>
 
@@ -80,7 +119,7 @@ export default function ResetPassword() {
           <label className="label">Confirm Password</label>
           <div className="password-container">
             <input
-              type={showConfirmPassword ? "text" : "password"}
+              type="password"
               name="confirmPassword"
               placeholder="******"
               value={formData.confirmPassword}
@@ -88,7 +127,6 @@ export default function ResetPassword() {
               className="input"
               required
             />
-            
           </div>
         </div>
 
@@ -102,12 +140,9 @@ export default function ResetPassword() {
           </ul>
         </div>
 
-        <button
-          onClick={onSubmit}
-          disabled={loading}
-          className={`submit-button ${loading ? "is-loading" : ""}`}
-        >
-          {loading ? "changing password..." : "Change Password"}
+        <button onClick={onSubmit} disabled={loading || !accessToken}
+          className={`submit-button ${loading ? "is-loading" : ""}`}>
+          {loading ? "Changing password..." : "Change Password"}
         </button>
       </div>
     </div>
