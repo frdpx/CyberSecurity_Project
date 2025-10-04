@@ -138,9 +138,10 @@ const LoginPopup = ({ setShowLogin }) => {
             required
           />
 
+
           {currState === "Login" && (
             <p className="forgot-password">
-              <a href="/forgot-password">ลืมรหัสผ่าน?</a>
+              <a href="/forgot-password">Forgot Password</a>
             </p>
           )}
         </div>

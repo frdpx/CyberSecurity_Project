@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { assets } from "../assets/assets";
+import eyeclose from "../assets/eyeclose.png";
+import eye from "../assets/eye.png";
 import "./ResetPassword.css";
 
 // เปลี่ยนให้ตรงกับ backend ของคุณ
@@ -27,6 +29,8 @@ function getTokenFromUrl() {
 export default function ResetPassword() {
   const [formData, setFormData] = useState({ password: "", confirmPassword: "" });
   const [loading, setLoading] = useState(false);
+  const [showPass, setShowPass] = useState(false); 
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
 
   // ดึง access_token จาก URL
   const accessToken = useMemo(getTokenFromUrl, []);
@@ -104,13 +108,19 @@ export default function ResetPassword() {
           <label className="label">New Password</label>
           <div className="password-container">
             <input
-              type="password"
+              type={showPass ? "text" : "password"}
               name="password"
               placeholder="******"
               value={formData.password}
               onChange={handleChange}
               className="input"
               required
+            />
+            <img
+              src={showPass ? eye : eyeclose}
+              alt="Toggle visibility"
+              className="toggle-visibility"
+              onClick={() => setShowPass(!showPass)} 
             />
           </div>
         </div>
@@ -119,13 +129,19 @@ export default function ResetPassword() {
           <label className="label">Confirm Password</label>
           <div className="password-container">
             <input
-              type="password"
+              type={showConfirmPass ? "text" : "password"}
               name="confirmPassword"
               placeholder="******"
               value={formData.confirmPassword}
               onChange={handleChange}
               className="input"
               required
+            />
+             <img
+              src={showConfirmPass ? eye : eyeclose}
+              alt="toggle visibility"
+              className="toggle-eye"
+              onClick={() => setShowConfirmPass(!showConfirmPass)}
             />
           </div>
         </div>
