@@ -48,7 +48,7 @@ export default function ForgotPassword() {
   return (
     <div className="forgot-container">
       <form onSubmit={onSubmit} className="forgot-form">
-        <img src={assets.profile_icon} alt="" />
+        <img src={assets.logo} alt="" />
         <h2>Forgot Password</h2>
         <p>Please enter your email. We will send you a password reset link.</p>
         <input
