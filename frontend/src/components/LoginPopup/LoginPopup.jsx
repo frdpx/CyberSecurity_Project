@@ -12,7 +12,7 @@ const LoginPopup = ({ setShowLogin }) => {
   const [data, setData] = useState({
     display_name: "",
     email: "",
-    password: "",
+    password: ""
   });
 
   const onChangeHandler = (event) => {
@@ -31,68 +31,78 @@ const LoginPopup = ({ setShowLogin }) => {
         currState === "Login"
           ? {
               email: data.email,
-              password: data.password,
+              password: data.password
             }
           : {
               display_name: data.display_name,
               email: data.email,
-              password: data.password,
+              password: data.password
             };
 
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload), // ✅ ส่งเฉพาะข้อมูลที่ต้องใช้
+        body: JSON.stringify(payload) // ✅ ส่งเฉพาะข้อมูลที่ต้องใช้
       });
 
       const resData = await response.json();
-      console.log("Response Data:", resData); // Debugging line 
+      console.log("Response Data:", resData); // Debugging line
+      if (currState === "Login") {
+        if (resData.success) {
+          const token =
+            resData.data?.session?.access_token ||
+            resData.data?.access_token ||
+            null;
+          const refreshToken =
+            resData.data?.session?.refresh_token ||
+            resData.data?.refresh_token ||
+            null;
+          const expiresAt =
+            resData.data?.session?.expires_at ||
+            resData.data?.expires_at ||
+            null;
 
-      if (resData.success) {
-        const token =
-          resData.data?.session?.access_token ||
-          resData.data?.access_token ||
-          null;
-        const refreshToken =
-          resData.data?.session?.refresh_token ||
-          resData.data?.refresh_token ||
-          null;
-        const expiresAt =
-          resData.data?.session?.expires_at || resData.data?.expires_at || null;
+          if (!token) throw new Error("No access token returned");
 
-        if (!token) throw new Error("No access token returned");
+          localStorage.setItem("token", token);
+          setToken(token);
 
-        localStorage.setItem("token", token);
-        setToken(token);
+          localStorage.setItem("refresh_token", refreshToken);
+          localStorage.setItem("expires_at", expiresAt * 1000);
 
-        localStorage.setItem("refresh_token", refreshToken);
-        localStorage.setItem("expires_at", expiresAt * 1000);
+          //test session
+          // refresh อัตโนมัติ
+          // debugExpire(5)
 
-        //test session
-        // refresh อัตโนมัติ
-        // debugExpire(5)
+          // expire cuz เป็น string ปลอม
+          //localStorage.setItem("refresh_token", "bb");
+          //debugExpire(5);
 
-        // expire cuz เป็น string ปลอม
-        //localStorage.setItem("refresh_token", "bb");
-        //debugExpire(5);
+          localStorage.setItem(
+            "user_role",
+            resData.data?.profile?.role || resData.role
+          );
 
-        localStorage.setItem(
-          "user_role",
-          resData.data?.profile?.role || resData.role
-        );
+          toast.success(`${currState} successful!`);
 
-        toast.success(`${currState} successful!`);
-
-        if (
-          resData.data?.profile?.role === "admin" ||
-          resData.role === "admin"
-        ) {
-          window.location.href = "http://localhost:5173/add";
+          if (
+            resData.data?.profile?.role === "admin" ||
+            resData.role === "admin"
+          ) {
+            window.location.href = "http://localhost:5173/add";
+          } else {
+            window.location.href = "/";
+          }
         } else {
-          window.location.href = "/";
+          toast.error(resData.message || "Failed to login");
         }
       } else {
-        toast.error(resData.message || "Failed to login");
+        if (resData.success) {
+          toast.success(`${currState} successful! Please log in.`);
+          setCurrState("Login");
+        } else {
+          toast.error(resData.message || "Failed to register");
+        }
       }
     } catch (error) {
       console.error(error);
@@ -138,7 +148,6 @@ const LoginPopup = ({ setShowLogin }) => {
             placeholder="Password"
             required
           />
-
 
           {currState === "Login" && (
             <p className="forgot-password">
