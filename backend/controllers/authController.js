@@ -769,6 +769,7 @@ export const register = async (req, res) => {
     }
 
     if (!authData.user) {
+      console.error("Registration failed: No user created");
       await createAuditLog(
         null,
         AuditActions.REGISTER_FAILED,
@@ -811,6 +812,7 @@ export const register = async (req, res) => {
     }
 
     // Log successful registration
+    console.log("✅ Registration successful:", { email, userId: authData.user.id });
     await createAuditLog(
       authData.user.id,
       AuditActions.REGISTER_SUCCESS,
@@ -841,7 +843,7 @@ export const register = async (req, res) => {
 
     await createAuditLog(
       null,
-      AuditActions.REGISTER_ERROR,
+      AuditActions.REGISTER_FAILED,
       "API",
       false,
       { email, error: err.message },
