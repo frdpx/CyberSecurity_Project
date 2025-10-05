@@ -46,6 +46,7 @@ const LoginPopup = ({ setShowLogin }) => {
       });
 
       const resData = await response.json();
+      console.log("Response Data:", resData); // Debugging line 
 
       if (resData.success) {
         const token =

@@ -725,6 +725,7 @@ export const login = async (req, res) => {
 
 // Register new user
 export const register = async (req, res) => {
+  console.log("⚡ Register called");
   const ip = req.ip || req.connection.remoteAddress;
   const userAgent = req.headers["user-agent"];
   const { email, password, full_name, display_name, role = "user" } = req.body;
