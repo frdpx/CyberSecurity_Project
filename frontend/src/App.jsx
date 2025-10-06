@@ -16,47 +16,70 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import useSession from "./hooks/useSession";
 import ForgotPassword from "./pages/ForgotPassword/Forgotpassword";
 import ResetPassword from "./ResetPassword/ResetPassword";
+import ForceChangePasswordPopup from "./components/ForceChangePasswordPopup/ForceChangePasswordPopup";
 
 const App = () => {
-  const userRole = localStorage.getItem("user_role");
-  console.log("User Role:", userRole); // Debugging line to check the user role
-  const [showLogin, setShowLogin] = useState(false);
-  useSession(setShowLogin);
+    const userRole = localStorage.getItem("user_role");
+    console.log("User Role:", userRole); // Debugging line to check the user role
+    const [showLogin, setShowLogin] = useState(false);
+    const [showForcePasswordChange, setShowForcePasswordChange] =
+        useState(false);
+    useSession(setShowLogin);
 
-  // no Layout Navbar, Footer
-  const noLayoutPages = ["/forgot-password","/reset-password"];
-  const hideLayout = noLayoutPages.includes(location.pathname);
+    // no Layout Navbar, Footer
+    const noLayoutPages = ["/forgot-password", "/reset-password"];
+    const hideLayout = noLayoutPages.includes(location.pathname);
 
+    return (
+        <>
+            <ToastContainer />
+            {showLogin ? (
+                <LoginPopup
+                    setShowLogin={setShowLogin}
+                    onRequireForceChange={() => {
+                        setShowLogin(false);
+                        setShowForcePasswordChange(true);
+                    }}
+                />
+            ) : (
+                <></>
+            )}
+            {showForcePasswordChange && (
+                <ForceChangePasswordPopup
+                    setForcePasswordChange={setShowForcePasswordChange}
+                    setShowLogin={setShowLogin}
+                />
+            )}
+            <div className="app">
+                {!hideLayout && <Navbar setShowLogin={setShowLogin} />}
+                {!hideLayout && <hr />}
 
-  return (
-    <>
-      <ToastContainer />
-      {showLogin ? <LoginPopup setShowLogin={setShowLogin} /> : <></>}
-      <div className="app">
-        
-        {!hideLayout && <Navbar setShowLogin={setShowLogin} />}
-        {!hideLayout && <hr />}
-
-        {userRole === "admin" ? (
-          <div className="app-content">
-            <Sidebar />
-            <Routes>
-              <Route path="/add" element={<Add />} />
-              <Route path="/list" element={<List />} />
-              <Route path="/orders" element={<Orders />} />
-            </Routes>
-          </div>
-        ) : (
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="reset-password" element ={<ResetPassword/>}/>
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/order" element={<PlaceOrder />} />
-            <Route path="/myorders" element={<MyOrders />} />
-          </Routes>
-        )}
-        {/* <Routes>
+                {userRole === "admin" ? (
+                    <div className="app-content">
+                        <Sidebar />
+                        <Routes>
+                            <Route path="/add" element={<Add />} />
+                            <Route path="/list" element={<List />} />
+                            <Route path="/orders" element={<Orders />} />
+                        </Routes>
+                    </div>
+                ) : (
+                    <Routes>
+                        <Route path="/" element={<Home />} />
+                        <Route
+                            path="/forgot-password"
+                            element={<ForgotPassword />}
+                        />
+                        <Route
+                            path="reset-password"
+                            element={<ResetPassword />}
+                        />
+                        <Route path="/cart" element={<Cart />} />
+                        <Route path="/order" element={<PlaceOrder />} />
+                        <Route path="/myorders" element={<MyOrders />} />
+                    </Routes>
+                )}
+                {/* <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/order" element={<PlaceOrder />} />
@@ -65,11 +88,10 @@ const App = () => {
           <Route path="/list" element={<List />} />
           <Route path="/orders" element={<Orders />} />
         </Routes> */}
-      </div>
-      {!hideLayout && <Footer />}
-      
-    </>
-  );
+            </div>
+            {!hideLayout && <Footer />}
+        </>
+    );
 };
 
 export default App;
