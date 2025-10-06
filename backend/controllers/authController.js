@@ -1,5 +1,5 @@
 import { supabase, supabaseAdmin } from "../config/supabase.js";
-import {LoginAttemptReason, AuditActions} from '../constant/audit_action.js';
+import { LoginAttemptReason, AuditActions } from "../constant/audit_action.js";
 
 // ===== DATABASE HELPER FUNCTIONS =====
 
@@ -53,7 +53,7 @@ const createUserProfile = async (user, additionalData = {}) => {
       user_id: user.id,
       display_name: display_name,
       role: role || "user", // default role
-      created_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
     };
     // ใช้ supabaseAdmin เพื่อข้าม RLS policy
     const { data, error } = await supabaseAdmin
@@ -93,9 +93,9 @@ const createAuditLog = async (
       ip: ip,
       user_agent: userAgent,
       details: details,
-      created_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
     };
-    
+
     console.log("⚡ createAuditLog called:", logData);
 
     const { data, error } = await supabase
@@ -129,7 +129,7 @@ const createLoginAttempt = async (
       user_id: userId,
       email_tried: emailTried,
       success: success,
-      reason: reason,
+      reason: reason
       // created_at: new Date().toISOString(),
     };
 
@@ -183,7 +183,7 @@ const checkFailedLoginAttempts = async (
       attemptCount: data.length,
       maxAttempts: maxAttempts,
       timeWindow: timeWindowMinutes,
-      error: null,
+      error: null
     };
   } catch (error) {
     return {
@@ -191,7 +191,7 @@ const checkFailedLoginAttempts = async (
       attemptCount: 0,
       maxAttempts,
       timeWindow: timeWindowMinutes,
-      error: error.message,
+      error: error.message
     };
   }
 };
@@ -268,7 +268,7 @@ const checkRateLimit = async (
       attemptCount: data.length,
       maxAttempts: maxAttempts,
       timeWindow: timeWindowMinutes,
-      error: null,
+      error: null
     };
   } catch (error) {
     console.error("Rate limit check error:", error);
@@ -277,7 +277,7 @@ const checkRateLimit = async (
       attemptCount: 0,
       maxAttempts,
       timeWindow: timeWindowMinutes,
-      error: error.message,
+      error: error.message
     };
   }
 };
@@ -295,20 +295,20 @@ export const getProfile = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Profile not found",
-        error: error,
+        error: error
       });
     }
 
     res.status(200).json({
       success: true,
-      data: profile,
+      data: profile
     });
   } catch (err) {
     console.error("Get profile error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to get profile",
-      error: err.message,
+      error: err.message
     });
   }
 };
@@ -326,28 +326,28 @@ export const updateProfile = async (req, res) => {
 
     const { profile, error } = await updateUserProfile(userId, {
       ...updateData,
-      updated_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     });
 
     if (error) {
       return res.status(400).json({
         success: false,
         message: "Failed to update profile",
-        error: error,
+        error: error
       });
     }
 
     res.status(200).json({
       success: true,
       message: "Profile updated successfully",
-      data: profile,
+      data: profile
     });
   } catch (err) {
     console.error("Update profile error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to update profile",
-      error: err.message,
+      error: err.message
     });
   }
 };
@@ -359,7 +359,7 @@ export const getSession = async (req, res) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: "No token provided",
+        message: "No token provided"
       });
     }
 
@@ -368,14 +368,14 @@ export const getSession = async (req, res) => {
     if (!decoded) {
       return res.status(401).json({
         success: false,
-        message: "Invalid token",
+        message: "Invalid token"
       });
     }
 
     if (decoded.exp * 1000 < Date.now()) {
       return res.status(401).json({
         success: false,
-        message: "Session expired",
+        message: "Session expired"
       });
     }
 
@@ -386,16 +386,16 @@ export const getSession = async (req, res) => {
         profile: req.profile,
         session: {
           access_token: token,
-          expires_at: decoded.exp,
-        },
-      },
+          expires_at: decoded.exp
+        }
+      }
     });
   } catch (err) {
     console.error("Get session error:", err);
     return res.status(500).json({
       success: false,
       message: "Failed to get session",
-      error: err.message,
+      error: err.message
     });
   }
 };
@@ -453,13 +453,13 @@ export const signOut = async (req, res) => {
     // บันทึก Audit ไม่ว่าผลจะเป็นอย่างไร (success ตาม error)
     await createAuditLog(
       userId,
-      AuditActions.LOGOUT,        // หรือใช้ LOGOUT_SUCCESS/FAILED แยกก็ได้
+      AuditActions.LOGOUT, // หรือใช้ LOGOUT_SUCCESS/FAILED แยกก็ได้
       "API",
-      !error,                     // success = true ถ้าไม่มี error
+      !error, // success = true ถ้าไม่มี error
       {
         // metadata เพิ่มเติม
         hasToken: Boolean(token),
-        message: error ? error.message : "Signed out successfully",
+        message: error ? error.message : "Signed out successfully"
       },
       ip,
       userAgent
@@ -471,13 +471,13 @@ export const signOut = async (req, res) => {
       return res.status(200).json({
         success: true,
         message: "Signed out (client should clear tokens).",
-        note: "Supabase signOut returned an error but client-side tokens should be cleared.",
+        note: "Supabase signOut returned an error but client-side tokens should be cleared."
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Signed out successfully",
+      message: "Signed out successfully"
     });
   } catch (err) {
     console.error("Sign out error:", err);
@@ -485,12 +485,12 @@ export const signOut = async (req, res) => {
     // บันทึก Audit กรณี exception จริง ๆ
     await createAuditLog(
       userId,
-      AuditActions.LOGOUT,        // หรือ LOGOUT_FAILED
+      AuditActions.LOGOUT, // หรือ LOGOUT_FAILED
       "API",
       false,
       {
         hasToken: Boolean(token),
-        error: err.message,
+        error: err.message
       },
       ip,
       userAgent
@@ -499,11 +499,10 @@ export const signOut = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to sign out",
-      error: err.message,
+      error: err.message
     });
   }
 };
-
 
 // Refresh token
 export const refreshToken = async (req, res) => {
@@ -513,19 +512,19 @@ export const refreshToken = async (req, res) => {
     if (!refresh_token) {
       return res.status(400).json({
         success: false,
-        message: "Refresh token required",
+        message: "Refresh token required"
       });
     }
 
     const { data, error } = await supabase.auth.refreshSession({
-      refresh_token: refresh_token,
+      refresh_token: refresh_token
     });
 
     if (error) {
       return res.status(401).json({
         success: false,
         message: "Failed to refresh token",
-        error: error.message,
+        error: error.message
       });
     }
 
@@ -535,15 +534,15 @@ export const refreshToken = async (req, res) => {
       data: {
         access_token: data.session.access_token,
         refresh_token: data.session.refresh_token,
-        expires_at: data.session.expires_at,
-      },
+        expires_at: data.session.expires_at
+      }
     });
   } catch (err) {
     console.error("Refresh token error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to refresh token",
-      error: err.message,
+      error: err.message
     });
   }
 };
@@ -570,7 +569,7 @@ export const getAllProfiles = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Failed to get profiles",
-        error: error.message,
+        error: error.message
       });
     }
 
@@ -581,19 +580,18 @@ export const getAllProfiles = async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total: count,
-        pages: Math.ceil(count / limit),
-      },
+        pages: Math.ceil(count / limit)
+      }
     });
   } catch (err) {
     console.error("Get all profiles error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to get profiles",
-      error: err.message,
+      error: err.message
     });
   }
 };
-
 
 // Login with email/password (server-side login)
 export const login = async (req, res) => {
@@ -604,11 +602,25 @@ export const login = async (req, res) => {
   try {
     if (!email || !password) {
       console.warn("Login failed: Missing credentials");
-      await createAuditLog(null, AuditActions.LOGIN_FAILED, "API", false, { email, reason: "Missing credentials" }, ip, userAgent);
-      await createLoginAttempt(null, email, false, LoginAttemptReason.MFA_REQUIRED, ip);
+      await createAuditLog(
+        null,
+        AuditActions.LOGIN_FAILED,
+        "API",
+        false,
+        { email, reason: "Missing credentials" },
+        ip,
+        userAgent
+      );
+      await createLoginAttempt(
+        null,
+        email,
+        false,
+        LoginAttemptReason.MFA_REQUIRED,
+        ip
+      );
       return res.status(400).json({
         success: false,
-        message: "Email and password required",
+        message: "Email and password required"
       });
     }
 
@@ -623,35 +635,83 @@ export const login = async (req, res) => {
 
       if (userError) {
         console.error("User check error:", userError.message);
-        await createAuditLog(null, AuditActions.LOGIN_FAILED, "API", false, { email, reason: userError.message }, ip, userAgent);
-        await createLoginAttempt(null, email, false, LoginAttemptReason.NOT_FOUND, ip);
+        await createAuditLog(
+          null,
+          AuditActions.LOGIN_FAILED,
+          "API",
+          false,
+          { email, reason: userError.message },
+          ip,
+          userAgent
+        );
+        await createLoginAttempt(
+          null,
+          email,
+          false,
+          LoginAttemptReason.NOT_FOUND,
+          ip
+        );
       } else {
         const userExists = users?.users?.some((u) => u.email === email);
 
         if (userExists) {
           console.warn("Login failed: Wrong password for", email);
-          await createAuditLog(null, AuditActions.LOGIN_FAILED, "API", false, { email, reason: "Wrong password" }, ip, userAgent);
-          await createLoginAttempt(null, email, false, LoginAttemptReason.WRONG_PASSWORD, ip);
+          await createAuditLog(
+            null,
+            AuditActions.LOGIN_FAILED,
+            "API",
+            false,
+            { email, reason: "Wrong password" },
+            ip,
+            userAgent
+          );
+          await createLoginAttempt(
+            null,
+            email,
+            false,
+            LoginAttemptReason.WRONG_PASSWORD,
+            ip
+          );
         } else {
           console.warn("Login failed: User not found for", email);
-          await createAuditLog(null, AuditActions.LOGIN_FAILED, "API", false, { email, reason: "User not found" }, ip, userAgent);
-          await createLoginAttempt(null, email, false, LoginAttemptReason.NOT_FOUND, ip);
+          await createAuditLog(
+            null,
+            AuditActions.LOGIN_FAILED,
+            "API",
+            false,
+            { email, reason: "User not found" },
+            ip,
+            userAgent
+          );
+          await createLoginAttempt(
+            null,
+            email,
+            false,
+            LoginAttemptReason.NOT_FOUND,
+            ip
+          );
         }
       }
 
       return res.status(401).json({
         success: false,
         message: "Invalid login credentials",
-        code: "LOGIN_FAILED",
+        code: "LOGIN_FAILED"
       });
     }
 
     if (!authData.user) {
-      await createLoginAttempt(null, email, false, LoginAttemptReason.NOT_FOUND, ip);
+      await createLoginAttempt(
+        null,
+        email,
+        false,
+        LoginAttemptReason.NOT_FOUND,
+        ip
+      );
       return res.status(401).json({
         success: false,
         message: "Invalid login credentials",
-        code: "LOGIN_FAILED",
+        code: "LOGIN_FAILED"
       });
     }
 
@@ -659,29 +719,47 @@ export const login = async (req, res) => {
     const { profile } = await getUserProfile(authData.user.id);
 
     if (!profile) {
-      await createLoginAttempt(authData.user.id, email, false, LoginAttemptReason.NOT_FOUND, ip);
+      await createLoginAttempt(
+        authData.user.id,
+        email,
+        false,
+        LoginAttemptReason.NOT_FOUND,
+        ip
+      );
       return res.status(403).json({
         success: false,
         message: "Profile not found. Please contact admin.",
-        code: "PROFILE_NOT_FOUND",
+        code: "PROFILE_NOT_FOUND"
       });
     }
 
     // --- check account lock ---
     if (profile.lock_until && new Date(profile.lock_until) > new Date()) {
-      await createLoginAttempt(authData.user.id, email, false, LoginAttemptReason.LOCKED, ip);
+      await createLoginAttempt(
+        authData.user.id,
+        email,
+        false,
+        LoginAttemptReason.LOCKED,
+        ip
+      );
       return res.status(403).json({
         success: false,
         message:
           "Account is temporarily locked due to too many failed attempts",
         code: "ACCOUNT_LOCKED",
-        lock_until: profile.lock_until,
+        lock_until: profile.lock_until
       });
     }
 
     // --- success ---
     await updateFailedAttempts(authData.user.id, false);
-    await createLoginAttempt(authData.user.id, email, true, LoginAttemptReason.SUCCESS, ip);
+    await createLoginAttempt(
+      authData.user.id,
+      email,
+      true,
+      LoginAttemptReason.SUCCESS,
+      ip
+    );
     await createAuditLog(
       authData.user.id,
       AuditActions.LOGIN_SUCCESS,
@@ -696,7 +774,7 @@ export const login = async (req, res) => {
       userId: authData.user.id,
       email: email,
       token: authData.session?.access_token?.slice(0, 20) + "...", // log แค่ต้นๆ กันยาว
-      profile: profile,
+      profile: profile
     });
     // console.log("✅ Login success:", JSON.stringify(res.data, null, 2));
 
@@ -709,22 +787,29 @@ export const login = async (req, res) => {
         session: authData.session,
         access_token: authData.session?.access_token || null,
         refresh_token: authData.session?.refresh_token || null,
-        expires_at: authData.session?.expires_at || null,
-      },
+        expires_at: authData.session?.expires_at || null
+      }
     });
   } catch (err) {
     console.error("Login error:", err);
-    await createLoginAttempt(null, email, false, LoginAttemptReason.NOT_FOUND, ip);
+    await createLoginAttempt(
+      null,
+      email,
+      false,
+      LoginAttemptReason.NOT_FOUND,
+      ip
+    );
     return res.status(500).json({
       success: false,
       message: "Login failed",
-      error: err.message,
+      error: err.message
     });
   }
 };
 
 // Register new user
 export const register = async (req, res) => {
+  console.log("⚡ Register called");
   const ip = req.ip || req.connection.remoteAddress;
   const userAgent = req.headers["user-agent"];
   const { email, password, full_name, display_name, role = "user" } = req.body;
@@ -733,7 +818,7 @@ export const register = async (req, res) => {
     if (!email || !password || !display_name) {
       return res.status(400).json({
         success: false,
-        message: "Email, password, and display name are required",
+        message: "Email, password, and display name are required"
       });
     }
 
@@ -744,9 +829,9 @@ export const register = async (req, res) => {
       options: {
         data: {
           full_name: full_name || "",
-          display_name: display_name || "",
-        },
-      },
+          display_name: display_name || ""
+        }
+      }
     });
 
     if (authError) {
@@ -764,11 +849,12 @@ export const register = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: authError.message,
-        code: "REGISTER_FAILED",
+        code: "REGISTER_FAILED"
       });
     }
 
     if (!authData.user) {
+      console.error("Registration failed: No user created");
       await createAuditLog(
         null,
         AuditActions.REGISTER_FAILED,
@@ -782,7 +868,7 @@ export const register = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Failed to create user account",
-        code: "USER_CREATION_FAILED",
+        code: "USER_CREATION_FAILED"
       });
     }
 
@@ -792,7 +878,7 @@ export const register = async (req, res) => {
       {
         role: role,
         display_name:
-          display_name || full_name || authData.user.email?.split("@")[0] || "",
+          display_name || full_name || authData.user.email?.split("@")[0] || ""
       }
     );
 
@@ -811,6 +897,10 @@ export const register = async (req, res) => {
     }
 
     // Log successful registration
+    console.log("✅ Registration successful:", {
+      email,
+      userId: authData.user.id
+    });
     await createAuditLog(
       authData.user.id,
       AuditActions.REGISTER_SUCCESS,
@@ -819,12 +909,18 @@ export const register = async (req, res) => {
       {
         email,
         has_profile: !!profile,
-        profile_error: profileError,
+        profile_error: profileError
       },
       ip,
       userAgent
     );
-    await createLoginAttempt(authData.user.id, email, true, LoginAttemptReason.SUCCESS, ip);
+    await createLoginAttempt(
+      authData.user.id,
+      email,
+      true,
+      LoginAttemptReason.SUCCESS,
+      ip
+    );
 
     res.status(201).json({
       success: true,
@@ -833,15 +929,15 @@ export const register = async (req, res) => {
         user: authData.user,
         session: authData.session,
         profile: profile,
-        profile_created: !!profile,
-      },
+        profile_created: !!profile
+      }
     });
   } catch (err) {
     console.error("Registration error:", err);
 
     await createAuditLog(
       null,
-      AuditActions.REGISTER_ERROR,
+      AuditActions.REGISTER_FAILED,
       "API",
       false,
       { email, error: err.message },
@@ -852,7 +948,7 @@ export const register = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Registration failed",
-      error: err.message,
+      error: err.message
     });
   }
 };
@@ -883,7 +979,7 @@ export const getLoginAttempts = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Failed to get login attempts",
-        error: error.message,
+        error: error.message
       });
     }
 
@@ -894,15 +990,15 @@ export const getLoginAttempts = async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total: count,
-        pages: Math.ceil(count / limit),
-      },
+        pages: Math.ceil(count / limit)
+      }
     });
   } catch (err) {
     console.error("Get login attempts error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to get login attempts",
-      error: err.message,
+      error: err.message
     });
   }
 };
@@ -937,7 +1033,7 @@ export const getAuditLogs = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Failed to get audit logs",
-        error: error.message,
+        error: error.message
       });
     }
 
@@ -948,15 +1044,15 @@ export const getAuditLogs = async (req, res) => {
         page: parseInt(page),
         limit: parseInt(limit),
         total: count,
-        pages: Math.ceil(count / limit),
-      },
+        pages: Math.ceil(count / limit)
+      }
     });
   } catch (err) {
     console.error("Get audit logs error:", err);
     res.status(500).json({
       success: false,
       message: "Failed to get audit logs",
-      error: err.message,
+      error: err.message
     });
   }
 };
@@ -971,5 +1067,5 @@ export default {
   login,
   register,
   getLoginAttempts,
-  getAuditLogs,
+  getAuditLogs
 };
