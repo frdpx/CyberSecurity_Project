@@ -5,6 +5,7 @@ import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
 import { debugExpire } from "../../hooks/debugSession";
 
+
 const LoginPopup = ({ setShowLogin }) => {
   const { setToken, loadCartData } = useContext(StoreContext);
   const [currState, setCurrState] = useState("Sign Up");
@@ -14,6 +15,18 @@ const LoginPopup = ({ setShowLogin }) => {
     email: "",
     password: ""
   });
+
+
+
+  // เคลีย state หลัง register ให้เป็นค่าเริ่มต้น
+  const resetForm = () => {
+    setData({
+      display_name: "",
+      email: "",
+      password: ""
+    });
+  };
+
 
   const onChangeHandler = (event) => {
     const name = event.target.name;
@@ -99,6 +112,7 @@ const LoginPopup = ({ setShowLogin }) => {
       } else {
         if (resData.success) {
           toast.success(`${currState} successful! Please log in.`);
+          resetForm(); // เคลียฟอร์มหลัง register สำเร็จ
           setCurrState("Login");
         } else {
           toast.error(resData.message || "Failed to register");
