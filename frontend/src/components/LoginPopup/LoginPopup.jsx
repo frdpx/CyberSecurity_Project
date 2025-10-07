@@ -4,10 +4,14 @@ import { assets } from "../../assets/assets";
 import { StoreContext } from "../../context/StoreContext";
 import { toast } from "react-toastify";
 import { debugExpire } from "../../hooks/debugSession";
+import eye from "../../assets/eye.png";
+import eyeclose from "../../assets/eyeclose.png";
+
 
 const LoginPopup = ({ setShowLogin }) => {
   const { setToken, loadCartData } = useContext(StoreContext);
   const [currState, setCurrState] = useState("Sign Up");
+  const [showPass, setShowPass] = useState(false);
 
   const [data, setData] = useState({
     display_name: "",
@@ -140,14 +144,24 @@ const LoginPopup = ({ setShowLogin }) => {
             placeholder="Your email"
             required
           />
-          <input
-            name="password"
-            onChange={onChangeHandler}
-            value={data.password}
-            type="password"
-            placeholder="Password"
-            required
-          />
+
+          <div className="password-container">
+              <input
+                type={showPass ? "text" : "password"}
+                name="password"
+                placeholder="******"
+                value={data.password}
+                onChange={onChangeHandler}
+                className="input"
+                required
+              />
+              <img
+                src={showPass ? eye : eyeclose}
+                alt="Toggle visibility"
+                className="toggle-visibility"
+                onClick={() => setShowPass(!showPass)} 
+              />
+          </div>
 
           {currState === "Login" && (
             <p className="forgot-password">
