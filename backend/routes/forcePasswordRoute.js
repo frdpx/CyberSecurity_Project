@@ -1,16 +1,13 @@
 import express from "express";
-import { forcePasswordChange } from "../controllers/forcePasswordController.js";
 import { supabaseAuthMiddleware } from "../middleware/auth.js";
-import { forcePasswordCheck } from "../middleware/forcePasswordMiddleware.js";
+import { forcePasswordChange, checkForcePassword } from "../controllers/forcePasswordController.js";
 
-const forcePasswordRoute = express.Router();
+const router = express.Router();
 
-// ตรวจสอบก่อนให้เปลี่ยนรหัส
-forcePasswordRoute.post(
-  "/force-password-change",
-  supabaseAuthMiddleware,
-  forcePasswordCheck,   
-  forcePasswordChange
-);
+// ตรวจสอบรหัสผ่านหมดอายุ
+router.get("/check-expiration", supabaseAuthMiddleware, checkForcePassword);
 
-export default forcePasswordRoute;
+// เปลี่ยนรหัสผ่านบังคับ
+router.post("/force-password-change", supabaseAuthMiddleware, forcePasswordChange);
+
+export default router;

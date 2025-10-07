@@ -49,7 +49,7 @@ export default function ResetPassword() {
     if (!/(?=.*[a-z])/.test(password)) return "Password must contain a lowercase letter";
     if (!(/(?=.*[A-Z])/.test(password))) return "Password must contain an uppercase letter";
     if (!(/(?=.*\d)/.test(password))) return "Password must contain a number";
-    return null;
+    return "Strong";
   };
 
   const onSubmit = async () => {
@@ -147,7 +147,7 @@ export default function ResetPassword() {
         </div>
 
         <div className="password-rules">
-          <p className="rules-title">Password must contain:</p>
+          <p className="rules-title">Password must contain</p>
           <ul className="rules-list">
             <li>At least 6 characters</li>
             <li>Lowercase letter (a–z)</li>

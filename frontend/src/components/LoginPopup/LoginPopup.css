@@ -78,3 +78,20 @@
 .forgot-password a:hover {
   text-decoration: underline;
 }
+
+.toggle-visibility,
+.toggle-eye {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+.toggle-visibility:hover,
+.toggle-eye:hover { opacity: 1; }
+
+.password-container { position: relative; }
