@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import "./LoginPopup.css";
 import { assets } from "../../assets/assets";
 import { StoreContext } from "../../context/StoreContext";
@@ -6,8 +6,6 @@ import { toast } from "react-toastify";
 import { debugExpire } from "../../hooks/debugSession";
 import eye from "../../assets/eye.png";
 import eyeclose from "../../assets/eyeclose.png";
-
-
 
 const LoginPopup = ({ setShowLogin }) => {
   const { setToken, loadCartData } = useContext(StoreContext);
@@ -20,7 +18,9 @@ const LoginPopup = ({ setShowLogin }) => {
     password: ""
   });
 
-
+  // ✅ state สำหรับนับจำนวน login fail และ lock
+  const [failCount, setFailCount] = useState(0);
+  const [lockTime, setLockTime] = useState(0);
 
   // เคลีย state หลัง register ให้เป็นค่าเริ่มต้น
   const resetForm = () => {
@@ -31,15 +31,32 @@ const LoginPopup = ({ setShowLogin }) => {
     });
   };
 
-
   const onChangeHandler = (event) => {
     const name = event.target.name;
     const value = event.target.value;
     setData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // ✅ Timer สำหรับนับเวลาถอยหลังตอนโดน lock
+  useEffect(() => {
+    let timer;
+    if (lockTime > 0) {
+      timer = setInterval(() => {
+        setLockTime((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [lockTime]);
+
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    // ✅ ถ้าถูกล็อกอยู่ ห้ามส่ง request
+    if (lockTime > 0) {
+      toast.error(`Too many attempts. Please wait ${lockTime}s`);
+      return;
+    }
+
     let apiUrl = "http://localhost:4000/api/auth/";
     apiUrl += currState === "Login" ? "login" : "register";
 
@@ -66,6 +83,9 @@ const LoginPopup = ({ setShowLogin }) => {
       console.log("Response Data:", resData); // Debugging line
       if (currState === "Login") {
         if (resData.success) {
+          // ✅ Reset failCount เมื่อ login สำเร็จ
+          setFailCount(0);
+
           const token =
             resData.data?.session?.access_token ||
             resData.data?.access_token ||
@@ -111,7 +131,19 @@ const LoginPopup = ({ setShowLogin }) => {
             window.location.href = "/";
           }
         } else {
-          toast.error(resData.message || "Failed to login");
+          // ✅ Login fail: เพิ่ม failCount
+          setFailCount((prev) => {
+            const newCount = prev + 1;
+            if (newCount >= 5) {
+              setLockTime(30); // lock 30 วินาที
+              toast.error("Too many failed attempts. Locked for 30s");
+              return 0; // reset counter หลังล็อก
+            }
+            toast.error(
+              resData.message || `Failed to login. Attempt ${newCount}/5`
+            );
+            return newCount;
+          });
         }
       } else {
         if (resData.success) {
@@ -160,21 +192,21 @@ const LoginPopup = ({ setShowLogin }) => {
           />
 
           <div className="password-container">
-              <input
-                type={showPass ? "text" : "password"}
-                name="password"
-                placeholder="******"
-                value={data.password}
-                onChange={onChangeHandler}
-                className="input"
-                required
-              />
-              <img
-                src={showPass ? eye : eyeclose}
-                alt="Toggle visibility"
-                className="toggle-visibility"
-                onClick={() => setShowPass(!showPass)} 
-              />
+            <input
+              type={showPass ? "text" : "password"}
+              name="password"
+              placeholder="******"
+              value={data.password}
+              onChange={onChangeHandler}
+              className="input"
+              required
+            />
+            <img
+              src={showPass ? eye : eyeclose}
+              alt="Toggle visibility"
+              className="toggle-visibility"
+              onClick={() => setShowPass(!showPass)}
+            />
           </div>
 
           {currState === "Login" && (
@@ -183,9 +215,16 @@ const LoginPopup = ({ setShowLogin }) => {
             </p>
           )}
         </div>
-        <button type="submit">
+        <button type="submit" disabled={lockTime > 0}>
           {currState === "Login" ? "Login" : "Create account"}
         </button>
+
+        {/* ✅ แสดงข้อความ countdown */}
+        {lockTime > 0 && (
+          <p className="lock-message">
+            Too many failed attempts. Please wait {lockTime} seconds.
+          </p>
+        )}
 
         <div className="login-popup-condition">
           <input type="checkbox" required />
