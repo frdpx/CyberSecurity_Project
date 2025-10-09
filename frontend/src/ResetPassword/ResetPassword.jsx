@@ -49,7 +49,7 @@ export default function ResetPassword() {
     if (!/(?=.*[a-z])/.test(password)) return "Password must contain a lowercase letter";
     if (!(/(?=.*[A-Z])/.test(password))) return "Password must contain an uppercase letter";
     if (!(/(?=.*\d)/.test(password))) return "Password must contain a number";
-    return "Strong";
+    return null;
   };
 
   const onSubmit = async () => {
