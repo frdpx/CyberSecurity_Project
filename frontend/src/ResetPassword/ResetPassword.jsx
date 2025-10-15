@@ -44,6 +44,7 @@ export default function ResetPassword() {
     setFormData((p) => ({ ...p, [e.target.name]: e.target.value }));
   };
 
+  //strong password validation
   const validatePassword = (password) => {
     if (password.length < 6) return "Password must be at least 6 characters";
     if (!/(?=.*[a-z])/.test(password)) return "Password must contain a lowercase letter";
@@ -88,8 +89,9 @@ export default function ResetPassword() {
 
       toast.success("Password changed successfully");
       setFormData({ password: "", confirmPassword: "" });
-      // ไปหน้า login ถ้าต้องการ
-      // window.location.href = "/login";
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 300);
     } catch (err) {
       console.error(err);
       toast.error("Cannot change password");
