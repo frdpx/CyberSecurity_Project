@@ -22,6 +22,17 @@ const LoginPopup = ({ setShowLogin }) => {
   const [failCount, setFailCount] = useState(0);
   const [lockTime, setLockTime] = useState(0);
 
+  const [passwordError, setPasswordError] = useState(null);
+
+  //strong password validation
+  const validatePassword = (password) => {
+    if (password.length < 6) return "Password must be at least 6 characters";
+    if (!/(?=.*[a-z])/.test(password)) return "Password must contain a lowercase letter";
+    if (!(/(?=.*[A-Z])/.test(password))) return "Password must contain an uppercase letter";
+    if (!(/(?=.*\d)/.test(password))) return "Password must contain a number";
+    return null;
+  };
+
   // เคลีย state หลัง register ให้เป็นค่าเริ่มต้น
   const resetForm = () => {
     setData({
@@ -35,6 +46,10 @@ const LoginPopup = ({ setShowLogin }) => {
     const name = event.target.name;
     const value = event.target.value;
     setData((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "password" && currState === "Sign Up") {
+      setPasswordError(validatePassword(value)); // null = ผ่าน
+    }
   };
 
   // ✅ Timer สำหรับนับเวลาถอยหลังตอนโดน lock
@@ -55,6 +70,15 @@ const LoginPopup = ({ setShowLogin }) => {
     if (lockTime > 0) {
       toast.error(`Too many attempts. Please wait ${lockTime}s`);
       return;
+    }
+
+    if (currState === "Sign Up") {
+      const err = validatePassword(data.password);
+      if (err) {
+        setPasswordError(err);
+        toast.error(err);
+        return; 
+      }
     }
 
     let apiUrl = "http://localhost:4000/api/auth/";
@@ -191,23 +215,41 @@ const LoginPopup = ({ setShowLogin }) => {
             required
           />
 
-          <div className="password-container">
-            <input
-              type={showPass ? "text" : "password"}
-              name="password"
-              placeholder="******"
-              value={data.password}
-              onChange={onChangeHandler}
-              className="input"
-              required
-            />
-            <img
-              src={showPass ? eye : eyeclose}
-              alt="Toggle visibility"
-              className="toggle-visibility"
-              onClick={() => setShowPass(!showPass)}
-            />
-          </div>
+        <div className="password-container">
+          <input
+            type={showPass ? "text" : "password"}
+            name="password"
+            placeholder="******"
+            value={data.password}
+            onChange={onChangeHandler}
+            className="input"
+            required
+            minLength={6}
+          />
+          <img
+            src={showPass ? eye : eyeclose}
+            alt="Toggle visibility"
+            className="toggle-visibility"
+            onClick={() => setShowPass(!showPass)}
+          />
+        </div>
+
+        {currState === "Sign Up" && passwordError && (
+            <small className="text-error">{passwordError}</small>
+          )}
+
+
+        {currState === "Sign Up" && (
+            <div className="password-rules">
+              <p className="rules-title">Password must contain</p>
+              <ul className="rules-list">
+                <li>At least 6 characters</li>
+                <li>Lowercase letter (a–z)</li>
+                <li>Uppercase letter (A–Z)</li>
+                <li>Number (0–9)</li>
+              </ul>
+            </div>
+          )}
 
           {currState === "Login" && (
             <p className="forgot-password">
