@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { debugExpire } from "../../hooks/debugSession";
 import eye from "../../assets/eye.png";
 import eyeclose from "../../assets/eyeclose.png";
+import axiosInstance from "../../utils/axiosInstance";
 
 const LoginPopup = ({ setShowLogin }) => {
   const { setToken, loadCartData } = useContext(StoreContext);
@@ -81,7 +82,7 @@ const LoginPopup = ({ setShowLogin }) => {
       }
     }
 
-    let apiUrl = "http://localhost:4000/api/auth/";
+    let apiUrl = "/api/auth/";
     apiUrl += currState === "Login" ? "login" : "register";
 
     try {
@@ -97,13 +98,9 @@ const LoginPopup = ({ setShowLogin }) => {
               password: data.password
             };
 
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload) // ✅ ส่งเฉพาะข้อมูลที่ต้องใช้
-      });
-
-      const resData = await response.json();
+      const response = await axiosInstance.post(apiUrl, payload);
+      const resData = response.data;
+      
       console.log("Response Data:", resData); // Debugging line
       if (currState === "Login") {
         if (resData.success) {

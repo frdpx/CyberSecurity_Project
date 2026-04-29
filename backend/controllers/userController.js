@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
 import validator from "validator";
-import userModel from "../models/userModel.js";
+import { findUserByEmail, checkPassword, createUser } from "../services/userService.js";
 
 const createToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET);
@@ -10,13 +9,13 @@ const createToken = (id) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await userModel.findOne({ email });
+    const user = await findUserByEmail(email);
 
     if (!user) {
       return res.json({ success: false, message: "User does not exist" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await checkPassword(password, user.password);
     if (!isMatch) {
       return res.json({ success: false, message: "Invalid credentials" });
     }
@@ -39,7 +38,7 @@ const registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;
 
   try {
-    const exists = await userModel.findOne({ email });
+    const exists = await findUserByEmail(email);
     if (exists) {
       return res.json({ success: false, message: "User already exists" });
     }
@@ -58,17 +57,7 @@ const registerUser = async (req, res) => {
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    const newUser = new userModel({
-      name,
-      email,
-      password: hashedPassword,
-      role: role || "customer",
-    });
-
-    const user = await newUser.save();
+    const user = await createUser(name, email, password, role);
 
     const token = createToken(user._id);
     res.json({ success: true, token, role: user.role });
@@ -85,22 +74,12 @@ const registerAdmin = async (req, res) => {
     return res.status(403).json({ success: false, message: "Forbidden" });
   }
 
-  const exists = await userModel.findOne({ email });
+  const exists = await findUserByEmail(email);
   if (exists) {
     return res.json({ success: false, message: "Admin already exists" });
   }
 
-  const salt = await bcrypt.genSalt(10);
-  const hashedPassword = await bcrypt.hash(password, salt);
-
-  const newUser = new userModel({
-    name,
-    email,
-    password: hashedPassword,
-    role: "admin",
-  });
-
-  await newUser.save();
+  await createUser(name, email, password, "admin");
   res.json({ success: true, message: "Admin created successfully" });
 };
 

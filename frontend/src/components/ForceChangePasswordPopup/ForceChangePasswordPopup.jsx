@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import eye from "../../assets/eye.png";
 import eyeclose from "../../assets/eyeclose.png";
 import "./ForceChangePasswordPopup.css"; // ใช้ CSS ของ popup ใหม่
+import axiosInstance from "../../utils/axiosInstance";
 
 const ForceChangePasswordPopup = ({ setForcePasswordChange, setShowLogin }) => {
   const [showOldPassword, setShowOldPassword] = useState(false);
@@ -48,23 +49,12 @@ const ForceChangePasswordPopup = ({ setForcePasswordChange, setShowLogin }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(
-        "http://localhost:4000/api/force/force-password-change",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            oldPassword: data.oldPassword,
-            newPassword: data.newPassword,
-          }),
-        }
-      );
+      const response = await axiosInstance.post("/api/force/force-password-change", {
+        oldPassword: data.oldPassword,
+        newPassword: data.newPassword,
+      });
 
-      const resData = await response.json();
+      const resData = response.data;
       console.log("Force password change response:", resData);
 
       if (resData.success) {

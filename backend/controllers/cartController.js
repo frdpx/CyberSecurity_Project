@@ -1,4 +1,4 @@
-import cartModel from "../models/cartModel.js";
+import { addItemToCart, removeItemFromCart, getUserCart } from "../services/cartService.js";
 
 // Add to cart
 const addToCart = async (req, res) => {
@@ -9,13 +9,9 @@ const addToCart = async (req, res) => {
     if (!userId)
       return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    let cart = await cartModel.findOne({ userId });
-    if (!cart) cart = new cartModel({ userId, items: {} });
+    const cartItems = await addItemToCart(userId, itemId);
 
-    cart.items[itemId] = (cart.items[itemId] || 0) + 1;
-    await cart.save();
-
-    res.json({ success: true, message: "Added To Cart", cartData: cart.items });
+    res.json({ success: true, message: "Added To Cart", cartData: cartItems });
   } catch (err) {
     console.error("addToCart error:", err);
     res.status(500).json({ success: false, message: "Server Error" });
@@ -31,20 +27,12 @@ const removeFromCart = async (req, res) => {
     if (!userId)
       return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    const cart = await cartModel.findOne({ userId });
-    if (!cart) return res.json({ success: true, cartData: {} });
-
-    if (cart.items[itemId] > 0) {
-      cart.items[itemId] -= 1;
-      if (cart.items[itemId] === 0) delete cart.items[itemId];
-    }
-
-    await cart.save();
+    const cartItems = await removeItemFromCart(userId, itemId);
 
     res.json({
       success: true,
       message: "Removed From Cart",
-      cartData: cart.items,
+      cartData: cartItems,
     });
   } catch (err) {
     console.error("removeFromCart error:", err);
@@ -60,8 +48,8 @@ const getCart = async (req, res) => {
     if (!userId)
       return res.status(401).json({ success: false, message: "Unauthorized" });
 
-    const cart = await cartModel.findOne({ userId });
-    res.json({ success: true, cartData: cart?.items || {} });
+    const cartItems = await getUserCart(userId);
+    res.json({ success: true, cartData: cartItems });
   } catch (err) {
     console.error("getCart error:", err);
     res.status(500).json({ success: false, message: "Server Error" });

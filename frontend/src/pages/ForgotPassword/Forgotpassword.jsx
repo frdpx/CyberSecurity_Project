@@ -2,6 +2,7 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { assets } from "../../assets/assets";
 import "./Forgotpassword.css";
+import axiosInstance from "../../utils/axiosInstance";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");   
@@ -17,17 +18,11 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:4000/api/password/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user_email: email }), // backend รอ field user_email
+      const res = await axiosInstance.post("/api/password/forgot-password", {
+        user_email: email
       });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to send reset link");
-      }
+      const data = res.data;
 
       // ✅ ถ้า backend ส่ง dev_action_link กลับมา (ตอน dev)
       if (data.dev_action_link) {
@@ -39,7 +34,8 @@ export default function ForgotPassword() {
       setEmail("");
     } catch (err) {
       console.error(err);
-      toast.error(err.message || "Cannot send password reset link");
+      const errorMsg = err.response?.data?.error || err.message || "Cannot send password reset link";
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

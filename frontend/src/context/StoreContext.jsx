@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState, useRef } from "react";
 import { menu_list } from "../assets/assets";
-import axios from "axios";
+import axiosInstance from "../utils/axiosInstance";
 import { toast } from "react-toastify";
 
 export const StoreContext = createContext(null);
@@ -38,15 +38,7 @@ const StoreContextProvider = (props) => {
 
       console.log("🔄 กำลัง refresh token...");
 
-      const response = await axios.post(
-        `${url}/api/auth/refresh`,
-        { refresh_token },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await axiosInstance.post("/api/auth/refresh", { refresh_token });
 
       if (response.data.success) {
         const newToken = response.data.data?.access_token;
@@ -136,11 +128,7 @@ const StoreContextProvider = (props) => {
 
           console.log("🔄 กำลัง refresh token...");
 
-          const response = await axios.post(
-            `${url}/api/auth/refresh`,
-            { refresh_token },
-            { headers: { "Content-Type": "application/json" } }
-          );
+          const response = await axiosInstance.post("/api/auth/refresh", { refresh_token });
 
           if (response.data.success) {
             const newToken = response.data.data?.access_token;
@@ -197,15 +185,7 @@ const StoreContextProvider = (props) => {
 
     if (token) {
       try {
-        await axios.post(
-          `${url}/api/cart/add`,
-          { itemId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await axiosInstance.post("/api/cart/add", { itemId });
       } catch (err) {
         console.error("addToCart error:", err);
       }
@@ -220,15 +200,7 @@ const StoreContextProvider = (props) => {
 
     if (token) {
       try {
-        await axios.post(
-          `${url}/api/cart/remove`,
-          { itemId },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        await axiosInstance.post("/api/cart/remove", { itemId });
       } catch (err) {
         console.error("removeFromCart error:", err);
       }
@@ -250,7 +222,7 @@ const StoreContextProvider = (props) => {
 
   const fetchFoodList = async () => {
     try {
-      const response = await axios.get(`${url}/api/food/list`);
+      const response = await axiosInstance.get("/api/food/list");
       setFoodList(response.data.data || []);
     } catch (err) {
       console.error("fetchFoodList error:", err.response?.data || err.message);
@@ -258,16 +230,13 @@ const StoreContextProvider = (props) => {
   };
 
   const loadCartData = async (token) => {
-    const response = await axios.post(
-      `${url}/api/cart/get`,
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    setCartItems(response.data.cartData || {});
+    try {
+      // Note: token is automatically attached by axiosInstance, so we just make the request
+      const response = await axiosInstance.post("/api/cart/get", {});
+      setCartItems(response.data.cartData || {});
+    } catch (err) {
+      console.error("loadCartData error:", err);
+    }
   };
 
   useEffect(() => {

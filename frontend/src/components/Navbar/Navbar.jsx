@@ -3,7 +3,7 @@ import "./Navbar.css";
 import { assets } from "../../assets/assets";
 import { Link, useNavigate } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContext";
-import axios from "axios";
+import axiosInstance from "../../utils/axiosInstance";
 
 const Navbar = ({ setShowLogin }) => {
   const [menu, setMenu] = useState("home");
@@ -13,18 +13,8 @@ const Navbar = ({ setShowLogin }) => {
 
   const logout = async () => {
     try {
-      const apiUrl = "http://localhost:4000/api/auth/signout";
-
-      // เรียก API logout (ส่ง token หรือ refresh_token ไปด้วย)
-      await axios.post(
-        apiUrl,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      // เรียก API logout
+      await axiosInstance.post("/api/auth/signout", {});
     } catch (error) {
       console.error("Logout error:", error.message);
       // ถึง backend error ก็ให้ client เคลียร์ token อยู่ดี

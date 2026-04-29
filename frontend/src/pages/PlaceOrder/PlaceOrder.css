@@ -23,7 +23,7 @@
     padding: 10px;
     border: 1px solid #C5C5C5;
     border-radius: 4px;
-    outline-color: #F95738;
+    outline-color: var(--primary-color);
 }
 
 .place-order-left .multi-field {
@@ -39,7 +39,7 @@
 .place-order-submit {
     margin-top: 50px;
     border: none;
-    background-color: #F95738;
+    background-color: var(--primary-color);
     color: white;
     padding: 12px 30px;
     border-radius: 4px;
@@ -73,7 +73,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    border: 2px solid #F95738;
+    border: 2px solid var(--primary-color);
     border-radius: 8px;
     min-width: 300px;
     padding: 10px;
@@ -92,9 +92,9 @@
 }
 
 .payment .payment-option.selected {
-    background-color: #F95738;
+    background-color: var(--primary-color);
     color: white;
-    border-color: #F95738;
+    border-color: var(--primary-color);
 }
 
 @media (max-width: 700px) {

@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
-import { assets } from "../assets/assets";
-import eyeclose from "../assets/eyeclose.png";
-import eye from "../assets/eye.png";
+import { assets } from "../../assets/assets";
+import eyeclose from "../../assets/eyeclose.png";
+import eye from "../../assets/eye.png";
 import "./ResetPassword.css";
-
-// เปลี่ยนให้ตรงกับ backend ของคุณ
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:4000";
+import axiosInstance from "../../utils/axiosInstance";
 
 function getTokenFromUrl() {
   // 1) ลองอ่านจาก hash (#access_token=...&type=recovery)
@@ -71,21 +69,12 @@ export default function ResetPassword() {
     try {
       setLoading(true);
 
-      const resp = await fetch(`${API_BASE}/api/password/reset-password-email`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          new_password: formData.password,
-          access_token: accessToken,
-        }),
+      const resp = await axiosInstance.post("/api/password/reset-password-email", {
+        new_password: formData.password,
+        access_token: accessToken,
       });
 
-      const data = await resp.json();
-
-      if (!resp.ok) {
-        toast.error(data?.error || "Failed to change password");
-        return;
-      }
+      const data = resp.data;
 
       toast.success("Password changed successfully");
       setFormData({ password: "", confirmPassword: "" });
@@ -94,7 +83,8 @@ export default function ResetPassword() {
       }, 300);
     } catch (err) {
       console.error(err);
-      toast.error("Cannot change password");
+      const errorMsg = err.response?.data?.error || "Failed to change password";
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
